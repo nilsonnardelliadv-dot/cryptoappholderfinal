@@ -657,45 +657,73 @@ const App = {
     // --- CORE FUNCTIONALITY COM SUPABASE ---
     Core: {
         init: async () => {
-            console.log('🚀 Inicializando CryptoPanel com Supabase...');
-            
-            // Carregar tokens do Supabase
-            await App.Core.loadTokens();
-            
-            // Carregar alertas do Supabase
-            await App.Core.loadAlerts();
-            
-            // Configurar UI
-            App.UI.setupMobileMenu(); 
-            App.UI.tooltips(); 
-            App.UI.grid();
-            
-            // Configurar escuta em tempo real
-            App.Core.setupRealtime();
-            
-            // Botões de refresh
-            document.getElementById('refreshDataDesktop').addEventListener('click', () => App.Core.refreshData());
-            document.getElementById('refreshDataMobile').addEventListener('click', () => App.Core.refreshData());
-            
-            // Carregar dados iniciais
-            await App.Core.refreshData();
-            
-            // Configurar auto-refresh
-            let countdown = 720;
-            setInterval(() => {
-                countdown--;
-                if (countdown <= 0) {
-                    countdown = 720;
-                    App.Core.refreshData();
-                }
-                document.getElementById('countdown-desktop').innerText = countdown + 's';
-                document.getElementById('countdown-mobile').innerText = countdown + 's';
-            }, 1000);
-            
-            // Atualizar UI
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
-            console.log('✅ CryptoPanel inicializado com sucesso!');
-        },
+    console.log('🚀 Inicializando CryptoPanel com Supabase...');
+    
+    try {
+        // Verificar conexão com Supabase
+        if (!supabase) {
+            console.error('❌ Supabase não inicializado');
+            alert('Erro: Supabase não configurado. Configure as credenciais.');
+            return;
+        }
+        
+        // Testar conexão com Supabase
+        const { error: connError } = await supabase.from('tokens').select('count').limit(1);
+        if (connError) {
+            console.error('❌ Erro na conexão com Supabase:', connError);
+            alert('Erro na conexão com Supabase. Verifique as credenciais e tabelas.');
+            return;
+        }
+        
+        // Carregar tokens do Supabase
+        await App.Core.loadTokens();
+        
+        // Carregar alertas do Supabase
+        await App.Core.loadAlerts();
+        
+        // Configurar UI
+        App.UI.setupMobileMenu(); 
+        App.UI.tooltips(); 
+        App.UI.grid();
+        
+        // Configurar escuta em tempo real
+        App.Core.setupRealtime();
+        
+        // Configurar listeners dos botões
+        document.getElementById('refreshDataDesktop').addEventListener('click', () => App.Core.refreshData());
+        document.getElementById('refreshDataMobile').addEventListener('click', () => App.Core.refreshData());
+        
+        // Carregar dados iniciais
+        await App.Core.refreshData();
+        
+        // Verificar alertas após dados carregados
+        await App.Alerts.checkAll();
+        App.Alerts.renderPanel();
+        
+        // Configurar auto-refresh
+        let countdown = 720;
+        const updateCountdown = () => {
+            countdown--;
+            if (countdown <= 0) {
+                countdown = 720;
+                App.Core.refreshData();
+            }
+            document.getElementById('countdown-desktop').innerText = countdown + 's';
+            document.getElementById('countdown-mobile').innerText = countdown + 's';
+        };
+        
+        setInterval(updateCountdown, 1000);
+        
+        // Atualizar UI
+        document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        console.log('✅ CryptoPanel inicializado com sucesso!');
+        
+    } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+        document.getElementById('last-update').innerText = 'Erro na inicialização';
+        alert('Erro ao inicializar. Verifique console (F12) para detalhes.');
+    }
+},
 
         // Carregar tokens do Supabase
         loadTokens: async () => {
@@ -727,35 +755,44 @@ const App = {
 
         // Carregar alertas do Supabase
                 loadAlerts: async () => {
-            try {
-                console.log('🔄 Carregando alertas do Supabase...');
-                
-                const { data, error } = await supabase
-                    .from('alerts')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                App.State.alerts = data.map(a => ({
-                    id: a.id,
-                    symbol: a.symbol,
-                    type: a.type,
-                    targetPrice: parseFloat(a.target_price),
-                    notes: a.notes || '',
-                    triggered: a.triggered || false
-                }));
-                
-                console.log(`✅ ${App.State.alerts.length} alertas carregados do Supabase`);
-                
-                // Verificar alertas acionados
-                await App.Alerts.checkAll();
-                
-            } catch (error) {
-                console.error('❌ Erro ao carregar alertas:', error);
-                App.State.alerts = [];
-            }
-        },
+    try {
+        console.log('🔄 Carregando alertas do Supabase...');
+        
+        // Verificar se supabase está inicializado
+        if (!supabase) {
+            console.error('❌ Supabase não inicializado');
+            App.State.alerts = [];
+            return;
+        }
+        
+        const { data, error } = await supabase
+            .from('alerts')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('❌ Erro ao buscar alertas:', error);
+            throw error;
+        }
+        
+        App.State.alerts = (data || []).map(a => ({
+            id: a.id,
+            symbol: a.symbol,
+            type: a.type,
+            targetPrice: parseFloat(a.target_price) || 0,
+            notes: a.notes || '',
+            triggered: a.triggered || false
+        }));
+        
+        console.log(`✅ ${App.State.alerts.length} alertas carregados do Supabase`);
+        
+        // NÃO chamar checkAll aqui - será chamado após os dados serem carregados
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar alertas:', error);
+        App.State.alerts = [];
+    }
+},
 
         // Configurar escuta em tempo real
         setupRealtime: () => {
@@ -789,37 +826,62 @@ const App = {
         },
 
         refreshData: async () => {
-            console.log('🔄 Atualizando dados de mercado...');
-            document.getElementById('last-update').innerText = "Analyzing...";
-            
-            for (let token of App.State.tokens) {
-                try {
-                    const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
-                        App.Core.fetchKlines(token.symbol, '1h', 24),
-                        App.Core.fetchKlines(token.symbol, '1d', 35),
-                        App.Core.fetchKlines(token.symbol, '1w', 250),
-                        App.Core.fetchFundamentals(token.coinId)
-                    ]);
+    console.log('🔄 Atualizando dados de mercado...');
+    document.getElementById('last-update').innerText = "Analyzing...";
+    
+    // Limpar dados antigos
+    App.State.data = {};
+    
+    // Usar Promise.all para buscar dados em paralelo com limite de concorrência
+    const batchSize = 3; // Processar 3 tokens por vez para não sobrecarregar
+    for (let i = 0; i < App.State.tokens.length; i += batchSize) {
+        const batch = App.State.tokens.slice(i, i + batchSize);
+        
+        await Promise.all(batch.map(async (token) => {
+            try {
+                console.log(`📊 Buscando dados para ${token.symbol}...`);
+                
+                const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
+                    App.Core.fetchKlines(token.symbol, '1h', 24),
+                    App.Core.fetchKlines(token.symbol, '1d', 35),
+                    App.Core.fetchKlines(token.symbol, '1w', 250),
+                    App.Core.fetchFundamentals(token.coinId)
+                ]);
 
-                    if(klinesWeekly && klinesWeekly.length > 50) {
-                        const quant = App.Analysis.run(token.symbol, klinesWeekly, klinesDaily, klines1h, fundamentals);
-                        App.State.data[token.symbol] = { 
-                            klines: { w: klinesWeekly, d: klinesDaily, h: klines1h }, 
-                            fundamentals, 
-                            analysis: quant 
-                        };
-                    }
-                } catch (error) {
-                    console.error(`❌ Erro ao processar ${token.symbol}:`, error);
+                if (klinesWeekly && klinesWeekly.length > 50) {
+                    const quant = App.Analysis.run(token.symbol, klinesWeekly, klinesDaily, klines1h, fundamentals);
+                    App.State.data[token.symbol] = { 
+                        klines: { w: klinesWeekly, d: klinesDaily, h: klines1h }, 
+                        fundamentals, 
+                        analysis: quant 
+                    };
+                    
+                    console.log(`✅ ${token.symbol}: Score ${quant.score}, Preço $${quant.price.toFixed(2)}`);
+                } else {
+                    console.warn(`⚠️ Dados insuficientes para ${token.symbol}`);
                 }
+            } catch (error) {
+                console.error(`❌ Erro ao processar ${token.symbol}:`, error.message);
             }
-            
-            App.Alerts.checkAll();
-            App.UI.updateAllCards(); 
-            App.Opportunities.render();
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            console.log('✅ Dados atualizados');
-        },
+        }));
+        
+        // Pequena pausa entre batches para não sobrecarregar APIs
+        if (i + batchSize < App.State.tokens.length) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+    }
+    
+    // Verificar alertas com os novos dados
+    await App.Alerts.checkAll();
+    
+    // Atualizar todas as visualizações
+    App.UI.updateAllCards(); 
+    App.Opportunities.render();
+    App.Alerts.renderPanel();
+    
+    document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    console.log(`✅ Dados atualizados para ${Object.keys(App.State.data).length} tokens`);
+},
 
         fetchKlines: async (symbol, interval, limit) => {
             try {
@@ -1325,76 +1387,122 @@ const App = {
             document.getElementById('alert-notes').value = '';
         },
         createAlert: async () => {
-            const sym = document.getElementById('alert-symbol')?.value;
-            const type = document.getElementById('alert-type')?.value;
-            const price = parseFloat(document.getElementById('alert-price')?.value);
-            const notes = document.getElementById('alert-notes')?.value;
+    const sym = document.getElementById('alert-symbol')?.value;
+    const type = document.getElementById('alert-type')?.value;
+    const price = parseFloat(document.getElementById('alert-price')?.value);
+    const notes = document.getElementById('alert-notes')?.value;
+    
+    // Validações
+    if(!sym || sym.trim() === '' || sym === 'Selecione um token') {
+        alert('Selecione um token válido.');
+        document.getElementById('alert-symbol')?.focus();
+        return;
+    }
+    
+    if(!price || isNaN(price) || price <= 0) {
+        alert('Digite um preço alvo válido (maior que 0).');
+        document.getElementById('alert-price')?.focus();
+        return;
+    }
+    
+    // Validar tipo
+    if (type !== 'buy' && type !== 'sell') {
+        alert('Tipo de alerta inválido. Use "buy" ou "sell".');
+        return;
+    }
+    
+    // Verificar se já existe alerta idêntico ativo
+    const existingAlert = App.State.alerts.find(a => 
+        a.symbol === sym && 
+        a.type === type && 
+        Math.abs(a.targetPrice - price) < 0.0001 && 
+        !a.triggered
+    );
+    
+    if (existingAlert) {
+        alert(`Já existe um alerta ${type} para ${sym.replace('USDT', '')} em $${price.toFixed(4)}`);
+        return;
+    }
+    
+    try {
+        console.log('🔄 Criando alerta no Supabase...', { sym, type, price, notes });
+        
+        // Verificar conexão com Supabase
+        if (!supabase) {
+            throw new Error('Supabase não inicializado');
+        }
+        
+        // Preparar dados para inserção
+        const alertData = {
+            symbol: sym.trim(),
+            type: type,
+            target_price: price,
+            notes: (notes || '').trim(),
+            triggered: false,
+            created_at: new Date().toISOString()
+        };
+        
+        // Inserir no Supabase
+        const { data, error } = await supabase
+            .from('alerts')
+            .insert([alertData])
+            .select();
+        
+        if (error) {
+            console.error('❌ Erro Supabase:', error);
             
-            if(!sym || sym === '') {
-                alert('Selecione um token.');
-                return;
+            // Mapear erros comuns do Supabase
+            if (error.code === '23505') {
+                alert('Já existe um alerta igual para este token e preço.');
+            } else if (error.code === '23514') {
+                alert('Tipo de alerta inválido. Use "buy" ou "sell".');
+            } else if (error.code === '42501') {
+                alert('Permissão negada. Verifique as políticas RLS do Supabase.');
+            } else if (error.code === '42P01') {
+                alert('Tabela não encontrada. Certifique-se de criar a tabela "alerts".');
+            } else {
+                alert(`Erro: ${error.message || 'Erro desconhecido'}`);
             }
-            
-            if(!price || isNaN(price) || price <= 0) {
-                alert('Digite um preço alvo válido (maior que 0).');
-                return;
-            }
-            
-            try {
-                console.log('🔄 Criando alerta no Supabase...', { sym, type, price, notes });
-                
-                // Inserir no Supabase
-                const { data, error } = await supabase
-                    .from('alerts')
-                    .insert([
-                        {
-                            symbol: sym,
-                            type: type,
-                            target_price: price,
-                            notes: notes || '',
-                            triggered: false
-                        }
-                    ])
-                    .select();
-                
-                if (error) {
-                    console.error('❌ Erro Supabase:', error);
-                    
-                    // Tratar erro específico
-                    if (error.code === '23505') {
-                        alert('Já existe um alerta igual para este token.');
-                    } else if (error.code === '23514') {
-                        alert('Tipo de alerta inválido. Use "buy" ou "sell".');
-                    } else {
-                        alert(`Erro: ${error.message}`);
-                    }
-                    return;
-                }
-                
-                console.log('✅ Alerta criado no Supabase:', data[0]);
-                
-                // Fechar modal e limpar
-                App.Alerts.closeModal();
-                
-                // Feedback visual
-                const alertBtn = document.querySelector(`[onclick*="App.Alerts.openForSymbol('${sym}')"]`);
-                if (alertBtn) {
-                    const originalColor = alertBtn.style.color;
-                    alertBtn.style.color = '#22c55e';
-                    setTimeout(() => {
-                        alertBtn.style.color = originalColor;
-                    }, 1000);
-                }
-                
-                alert(`✅ Alerta criado para ${sym.replace('USDT', '')} em $${price}`);
-                
-                // O realtime subscription vai atualizar automaticamente
-                
-            } catch (error) {
-                console.error('❌ Erro completo ao criar alerta:', error);
-                alert('Erro ao criar alerta. Verifique console (F12) e conexão.');
-            }
-        },
+            return;
+        }
+        
+        console.log('✅ Alerta criado no Supabase:', data[0]);
+        
+        // Adicionar ao estado local (a atualização realtime também vai atualizar)
+        const newAlert = {
+            id: data[0].id,
+            symbol: data[0].symbol,
+            type: data[0].type,
+            targetPrice: parseFloat(data[0].target_price),
+            notes: data[0].notes || '',
+            triggered: data[0].triggered || false
+        };
+        
+        App.State.alerts.unshift(newAlert);
+        
+        // Fechar modal
+        App.Alerts.closeModal();
+        
+        // Feedback visual
+        App.Alerts.renderPanel();
+        
+        // Atualizar cards que possuem este símbolo
+        App.UI.updateAllCards();
+        
+        // Feedback de sucesso
+        const symbolName = sym.replace('USDT', '');
+        const message = `✅ Alerta criado para ${symbolName}\n` +
+                       `Tipo: ${type === 'buy' ? 'Comprar abaixo de' : 'Vender acima de'}\n` +
+                       `Preço: $${price.toFixed(4)}\n` +
+                       `Nota: ${notes || '(sem nota)'}`;
+        
+        alert(message);
+        
+    } catch (error) {
+        console.error('❌ Erro completo ao criar alerta:', error);
+        alert(`Erro ao criar alerta: ${error.message}\nVerifique console (F12) para detalhes.`);
+    }
+},
         openForCard: (btn) => {
             const card = btn.closest('.card');
             if (card) {
@@ -1433,60 +1541,112 @@ const App = {
             }
         },
         checkAll: async () => {
-            let triggeredAny = false;
+    if (!App.State.alerts || App.State.alerts.length === 0) {
+        return;
+    }
+    
+    let triggeredAny = false;
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString();
+    
+    console.log(`🔍 Verificando ${App.State.alerts.length} alertas às ${timestamp}...`);
+    
+    // Filtrar apenas alertas não acionados
+    const activeAlerts = App.State.alerts.filter(a => !a.triggered);
+    
+    if (activeAlerts.length === 0) {
+        console.log('ℹ️ Nenhum alerta ativo para verificar');
+        return;
+    }
+    
+    for (let a of activeAlerts) {
+        try {
+            const d = App.State.data[a.symbol];
             
-            console.log('🔍 Verificando alertas...');
+            if (!d || !d.analysis || !d.analysis.price) {
+                console.log(`⚠️ Dados insuficientes para ${a.symbol}, pulando...`);
+                continue;
+            }
             
-            for (let a of App.State.alerts) {
-                if(a.triggered) {
-                    continue; // Já foi acionado
-                }
+            const currentPrice = d.analysis.price;
+            
+            // Verificar se o preço é válido
+            if (currentPrice <= 0) {
+                console.warn(`⚠️ Preço inválido para ${a.symbol}: $${currentPrice}`);
+                continue;
+            }
+            
+            console.log(`📊 ${a.symbol}: $${currentPrice.toFixed(4)} vs Alvo $${a.targetPrice} (${a.type})`);
+            
+            // Verificar condição com tolerância mínima
+            const tolerance = 0.0001;
+            const shouldTrigger = 
+                (a.type === 'buy' && currentPrice <= (a.targetPrice + tolerance)) || 
+                (a.type === 'sell' && currentPrice >= (a.targetPrice - tolerance));
+            
+            if (shouldTrigger) {
+                console.log(`🚨 ALERTA DISPARADO: ${a.symbol} ${a.type.toUpperCase()} em $${a.targetPrice}`);
                 
-                const d = App.State.data[a.symbol];
-                if(!d || !d.analysis) {
-                    console.log(`⚠️ Dados insuficientes para ${a.symbol}`);
+                // Atualizar no Supabase
+                const updatedNotes = `${a.notes || ''} [Disparado em ${now.toLocaleString()}]`.trim();
+                
+                const { error } = await supabase
+                    .from('alerts')
+                    .update({ 
+                        triggered: true,
+                        notes: updatedNotes
+                    })
+                    .eq('id', a.id);
+                
+                if (error) {
+                    console.error(`❌ Erro ao atualizar alerta ${a.id}:`, error);
                     continue;
                 }
                 
-                const p = d.analysis.price;
-                console.log(`📊 ${a.symbol}: Preço atual $${p.toFixed(4)}, Alvo $${a.targetPrice}`);
+                // Atualizar localmente
+                a.triggered = true;
+                a.notes = updatedNotes;
+                triggeredAny = true;
                 
-                // Verificar condição
-                const shouldTrigger = (a.type === 'buy' && p <= a.targetPrice) || 
-                                     (a.type === 'sell' && p >= a.targetPrice);
+                // Notificação visual (não usar alert() para não bloquear a UI)
+                const notificationMsg = `🔔 ${a.symbol.replace('USDT', '')} atingiu $${a.targetPrice.toFixed(4)}`;
+                console.log(notificationMsg);
                 
-                if(shouldTrigger) {
-                    console.log(`🚨 ALERTA DISPARADO: ${a.symbol} ${a.type.toUpperCase()} em $${a.targetPrice}`);
+                // Usar notificação mais amigável
+                if (Notification.permission === 'granted') {
+                    new Notification('CryptoPanel Alert', {
+                        body: notificationMsg,
+                        icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
+                    });
+                } else {
+                    // Fallback: criar elemento de notificação na página
+                    const notificationEl = document.createElement('div');
+                    notificationEl.className = 'fixed top-4 right-4 bg-green-900 text-white p-3 rounded-lg shadow-lg z-[9999]';
+                    notificationEl.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>${notificationMsg}</span>
+                        </div>
+                    `;
+                    document.body.appendChild(notificationEl);
                     
-                    try {
-                        // Atualizar no Supabase
-                        const { error } = await supabase
-                            .from('alerts')
-                            .update({ 
-                                triggered: true,
-                                notes: (a.notes || '') + ` [Disparado em ${new Date().toLocaleString()}]`
-                            })
-                            .eq('id', a.id);
-                        
-                        if (error) throw error;
-                        
-                        a.triggered = true;
-                        triggeredAny = true;
-                        
-                        // Notificação visual
-                        alert(`🔔 ALERTA: ${a.symbol.replace('USDT', '')} atingiu $${a.targetPrice.toFixed(4)}`);
-                        
-                    } catch (error) {
-                        console.error('❌ Erro ao atualizar alerta:', error);
-                    }
+                    setTimeout(() => {
+                        notificationEl.remove();
+                    }, 5000);
                 }
             }
-            
-            if(triggeredAny) {
-                console.log('✅ Alertas atualizados no Supabase');
-                // O realtime vai atualizar automaticamente
-            }
-        },
+        } catch (error) {
+            console.error(`❌ Erro ao verificar alerta ${a.id} (${a.symbol}):`, error);
+        }
+    }
+    
+    if (triggeredAny) {
+        console.log('✅ Alertas atualizados no Supabase');
+        // Atualizar a UI
+        App.Alerts.renderPanel();
+        App.UI.updateAllCards();
+    }
+},
         renderPanel: () => {
             const div = document.getElementById('alertsContent');
             if(!div) return;
