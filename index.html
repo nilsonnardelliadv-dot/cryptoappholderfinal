@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CryptoPanel HOLDER PRO v3.4 - Fixed Sort & MultiSource</title>
+    <title>CryptoPanel HOLDER PRO v3.5 - Hybrid Source</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -154,7 +154,7 @@
                     <i class="fa-solid fa-chart-line text-white text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-white tracking-tight leading-none" data-tip="sys_title">CP<span class="text-holder-accumulation">HOLDER</span> <span class="text-[10px] text-gray-500 border border-gray-700 rounded px-1 align-middle ml-1">v3.4 PRO</span></h1>
+                    <h1 class="font-bold text-lg text-white tracking-tight leading-none" data-tip="sys_title">CP<span class="text-holder-accumulation">HOLDER</span> <span class="text-[10px] text-gray-500 border border-gray-700 rounded px-1 align-middle ml-1">v3.5 HYBRID</span></h1>
                     <div class="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                         <span id="last-update" data-tip="sys_sync">Syncing...</span>
@@ -305,9 +305,15 @@
         <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mt-2">
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <div class="relative group w-full sm:w-72">
-                    <input type="text" id="add-input" placeholder="TICKER BINANCE ou ID GECKO (Ex: kaspa)" class="w-full bg-dark-900 border border-gray-700 rounded-lg pl-4 pr-10 py-3 text-sm focus:border-holder-accumulation outline-none uppercase shadow-inner transition-all font-mono">
+                    <input type="text" id="add-input" placeholder="TICKER ou ID (Ex: kaspa)" class="w-full bg-dark-900 border border-gray-700 rounded-lg pl-4 pr-10 py-3 text-sm focus:border-holder-accumulation outline-none uppercase shadow-inner transition-all font-mono">
                     <button onclick="App.Token.add()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-dark-800 text-holder-accumulation hover:text-white hover:bg-green-600 p-1.5 rounded-md transition-all" data-tip="btn_add_token"><i class="fa-solid fa-plus"></i></button>
                 </div>
+                
+                <label class="flex items-center gap-2 cursor-pointer bg-dark-800 px-3 py-3 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors" title="Ativar para usar dados da CoinGecko (Gemcoins)">
+                    <input type="checkbox" id="source-toggle" class="peer sr-only">
+                    <div class="w-9 h-5 bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                    <span class="text-[10px] font-bold uppercase text-gray-400 peer-checked:text-blue-400"><i class="fa-solid fa-dragon"></i> Gecko</span>
+                </label>
             </div>
         </div>
         
@@ -363,9 +369,9 @@
                 </div>
                 
                 <div>
-                    <div class="text-xs font-bold text-gray-500 uppercase mb-2">Adicionar em Lote</div>
-                    <div class="text-[10px] text-gray-500 mb-1">Use 'TICKER' (Binance) ou 'ID' (CoinGecko)</div>
-                    <textarea id="batch-tokens" class="w-full bg-dark-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono" rows="3" placeholder="BTC&#10;ETH&#10;kaspa&#10;pepe"></textarea>
+                    <div class="text-xs font-bold text-gray-500 uppercase mb-2">Adicionar em Lote (Binance Padrão)</div>
+                    <div class="text-[10px] text-gray-500 mb-1">Use 'TICKER' (Binance). Para Gecko, adicione individualmente.</div>
+                    <textarea id="batch-tokens" class="w-full bg-dark-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono" rows="3" placeholder="BTC&#10;ETH&#10;SOL"></textarea>
                 </div>
             </div>
             <div class="p-4 border-t border-gray-800 flex gap-3">
@@ -399,8 +405,8 @@
                     <div class="flex items-center gap-3">
                         <div class="score-badge w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold text-black border border-white/20 shadow-lg cursor-help" data-tip="score_total">--</div>
                         <div>
-                            <h3 class="font-bold text-white text-xl symbol-ticker leading-none tracking-tight">BTC</h3>
-                            <div class="text-[10px] text-gray-400 symbol-name truncate max-w-[120px]">Bitcoin</div>
+                            <h3 class="font-bold text-white text-xl symbol-ticker leading-none tracking-tight ml-2">BTC</h3>
+                            <div class="text-[10px] text-gray-400 symbol-name truncate max-w-[120px] ml-2">Bitcoin</div>
                         </div>
                     </div>
                     <div class="text-right">
@@ -480,1595 +486,996 @@
 
     <script>
         // ===== CONFIGURAÇÃO SUPABASE =====
-// SUBSTITUA COM SUAS CREDENCIAIS!
-const SUPABASE_URL = 'https://alvfhnbeecoagyfvjhjc.supabase.co'; // COLE SUA URL AQUI
-const SUPABASE_KEY = 'sb_publishable_etmScGm97-IN35DCtlm-6g_xraY_k2w'; // COLE SUA KEY AQUI
+        // SUBSTITUA COM SUAS CREDENCIAIS!
+        const SUPABASE_URL = 'https://alvfhnbeecoagyfvjhjc.supabase.co'; // COLE SUA URL AQUI
+        const SUPABASE_KEY = 'sb_publishable_etmScGm97-IN35DCtlm-6g_xraY_k2w'; // COLE SUA KEY AQUI
 
-// Inicializar Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Inicializar Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Constants & Config
-const API = { BINANCE: "https://api.binance.com/api/v3", COINGECKO: "https://api.coingecko.com/api/v3" };
-const QUANT_CONFIG = { rsiPeriod: 14, volatilityWindow: 52, regressionLookback: 156 };
+        // Constants & Config
+        const API = { BINANCE: "https://api.binance.com/api/v3", COINGECKO: "https://api.coingecko.com/api/v3" };
+        const QUANT_CONFIG = { rsiPeriod: 14, volatilityWindow: 52, regressionLookback: 156 };
 
-// --- MATH & STATISTICS ENGINE ---
-const Quant = {
-    mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
-    stdDev: (arr) => { 
-        if (arr.length < 2) return 0;
-        const m = Quant.mean(arr); 
-        return Math.sqrt(arr.reduce((sq, n) => sq + Math.pow(n - m, 2), 0) / (arr.length - 1)); 
-    },
-    sma: (arr, period) => {
-        if (arr.length < period) return arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; 
-        return arr.slice(-period).reduce((a, b) => a + b, 0) / period;
-    },
-    rsi: (closes, period = 14) => {
-        if (closes.length < period + 1) return 50;
-        let gains = 0, losses = 0;
-        for (let i = 1; i <= period; i++) { 
-            let diff = closes[i] - closes[i - 1]; 
-            if (diff >= 0) gains += diff; 
-            else losses -= diff; 
-        }
-        let avgGain = gains / period; 
-        let avgLoss = losses / period;
-        for (let i = period + 1; i < closes.length; i++) {
-            let diff = closes[i] - closes[i - 1];
-            if (diff >= 0) { 
-                avgGain = (avgGain * (period - 1) + diff) / period; 
-                avgLoss = (avgLoss * (period - 1)) / period; 
-            } 
-            else { 
-                avgGain = (avgGain * (period - 1)) / period; 
-                avgLoss = (avgLoss * (period - 1) - diff) / period; 
+        // --- MATH & STATISTICS ENGINE ---
+        const Quant = {
+            mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
+            stdDev: (arr) => { 
+                if (arr.length < 2) return 0;
+                const m = Quant.mean(arr); 
+                return Math.sqrt(arr.reduce((sq, n) => sq + Math.pow(n - m, 2), 0) / (arr.length - 1)); 
+            },
+            sma: (arr, period) => {
+                if (arr.length < period) return arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0; 
+                return arr.slice(-period).reduce((a, b) => a + b, 0) / period;
+            },
+            rsi: (closes, period = 14) => {
+                if (closes.length < period + 1) return 50;
+                let gains = 0, losses = 0;
+                for (let i = 1; i <= period; i++) { 
+                    let diff = closes[i] - closes[i - 1]; 
+                    if (diff >= 0) gains += diff; 
+                    else losses -= diff; 
+                }
+                let avgGain = gains / period; 
+                let avgLoss = losses / period;
+                for (let i = period + 1; i < closes.length; i++) {
+                    let diff = closes[i] - closes[i - 1];
+                    if (diff >= 0) { 
+                        avgGain = (avgGain * (period - 1) + diff) / period; 
+                        avgLoss = (avgLoss * (period - 1)) / period; 
+                    } 
+                    else { 
+                        avgGain = (avgGain * (period - 1)) / period; 
+                        avgLoss = (avgLoss * (period - 1) - diff) / period; 
+                    }
+                }
+                if (avgLoss === 0) return 100;
+                return 100 - (100 / (1 + (avgGain / avgLoss)));
+            },
+            logRegression: (prices) => {
+                const n = prices.length;
+                if (n < 2) return { fair: prices[0] || 0, top: prices[0] || 0, bottom: prices[0] || 0, stdev: 0, regressionPrice: prices[0] || 0, params: {a: 0, b: 0} };
+                
+                let sumY = 0, sumLnX = 0, sumYLnX = 0, sumLnX2 = 0;
+                for (let i = 0; i < n; i++) {
+                    let x = i + 1; 
+                    let lnY = Math.log(prices[i]); 
+                    let lnX = Math.log(x);
+                    sumY += lnY; 
+                    sumLnX += lnX; 
+                    sumYLnX += lnY * lnX; 
+                    sumLnX2 += lnX * lnX;
+                }
+                const b = (n * sumYLnX - sumLnX * sumY) / (n * sumLnX2 - sumLnX * sumLnX);
+                const a = (sumY - b * sumLnX) / n;
+                let residuals = [];
+                for(let i = 0; i < n; i++) {
+                    residuals.push(Math.log(prices[i]) - (a + b * Math.log(i + 1)));
+                }
+                const stdev = Quant.stdDev(residuals) || 0.1;
+                const currentX = n; 
+                const fairLnY = a + b * Math.log(currentX);
+                return { 
+                    fair: Math.exp(fairLnY), 
+                    top: Math.exp(fairLnY + 2 * stdev), 
+                    bottom: Math.exp(fairLnY - 2 * stdev), 
+                    stdev: stdev, 
+                    regressionPrice: Math.exp(fairLnY),
+                    params: {a, b}
+                };
+            },
+            volatility: (closes) => {
+                if (closes.length < 2) return 0;
+                let logReturns = [];
+                for(let i = 1; i < closes.length; i++) {
+                    if (closes[i-1] > 0) {
+                        logReturns.push(Math.log(closes[i] / closes[i-1]));
+                    }
+                }
+                if (logReturns.length === 0) return 0;
+                const window = Math.min(logReturns.length, QUANT_CONFIG.volatilityWindow);
+                const std = Quant.stdDev(logReturns.slice(-window));
+                return std * Math.sqrt(52); 
+            },
+            empiricalProb: (closes, currentZScore, stdev, params) => {
+                if (!closes || closes.length < 10) return 50;
+                let wins = 0;
+                let total = 0;
+                const lookback = Math.min(closes.length - 5, 200); 
+                for(let i = closes.length - lookback; i < closes.length - 4; i++) {
+                    const timeX = i + 1;
+                    const predLog = params.a + params.b * Math.log(timeX);
+                    const actualLog = Math.log(closes[i]);
+                    const z = (actualLog - predLog) / stdev;
+                    if (Math.abs(z - currentZScore) < 0.5) {
+                        total++;
+                        if (closes[i+4] > closes[i]) wins++;
+                    }
+                }
+                if (total < 5) return 50; 
+                return (wins / total) * 100;
             }
-        }
-        if (avgLoss === 0) return 100;
-        return 100 - (100 / (1 + (avgGain / avgLoss)));
-    },
-    logRegression: (prices) => {
-        const n = prices.length;
-        if (n < 2) return { fair: prices[0] || 0, top: prices[0] || 0, bottom: prices[0] || 0, stdev: 0, regressionPrice: prices[0] || 0, params: {a: 0, b: 0} };
-        
-        let sumY = 0, sumLnX = 0, sumYLnX = 0, sumLnX2 = 0;
-        for (let i = 0; i < n; i++) {
-            let x = i + 1; 
-            let lnY = Math.log(prices[i]); 
-            let lnX = Math.log(x);
-            sumY += lnY; 
-            sumLnX += lnX; 
-            sumYLnX += lnY * lnX; 
-            sumLnX2 += lnX * lnX;
-        }
-        const b = (n * sumYLnX - sumLnX * sumY) / (n * sumLnX2 - sumLnX * sumLnX);
-        const a = (sumY - b * sumLnX) / n;
-        let residuals = [];
-        for(let i = 0; i < n; i++) {
-            residuals.push(Math.log(prices[i]) - (a + b * Math.log(i + 1)));
-        }
-        const stdev = Quant.stdDev(residuals) || 0.1;
-        const currentX = n; 
-        const fairLnY = a + b * Math.log(currentX);
-        return { 
-            fair: Math.exp(fairLnY), 
-            top: Math.exp(fairLnY + 2 * stdev), 
-            bottom: Math.exp(fairLnY - 2 * stdev), 
-            stdev: stdev, 
-            regressionPrice: Math.exp(fairLnY),
-            params: {a, b}
         };
-    },
-    volatility: (closes) => {
-        if (closes.length < 2) return 0;
-        let logReturns = [];
-        for(let i = 1; i < closes.length; i++) {
-            if (closes[i-1] > 0) {
-                logReturns.push(Math.log(closes[i] / closes[i-1]));
-            }
-        }
-        if (logReturns.length === 0) return 0;
-        const window = Math.min(logReturns.length, QUANT_CONFIG.volatilityWindow);
-        const std = Quant.stdDev(logReturns.slice(-window));
-        return std * Math.sqrt(52); 
-    },
-    empiricalProb: (closes, currentZScore, stdev, params) => {
-        if (!closes || closes.length < 10) return 50;
-        let wins = 0;
-        let total = 0;
-        const lookback = Math.min(closes.length - 5, 200); 
-        for(let i = closes.length - lookback; i < closes.length - 4; i++) {
-            const timeX = i + 1;
-            const predLog = params.a + params.b * Math.log(timeX);
-            const actualLog = Math.log(closes[i]);
-            const z = (actualLog - predLog) / stdev;
-            if (Math.abs(z - currentZScore) < 0.5) {
-                total++;
-                if (closes[i+4] > closes[i]) wins++;
-            }
-        }
-        if (total < 5) return 50; 
-        return (wins / total) * 100;
-    }
-};
 
-const App = {
-    State: {
-        tokens: [],
-        alerts: [],
-        data: {}, 
-        activeTab: 'agressive'
-    },
+        const App = {
+            State: {
+                tokens: [],
+                alerts: [],
+                data: {}, 
+                activeTab: 'agressive'
+            },
 
-    // --- LIBRARY (Tooltips) --- (MANTENHA IGUAL)
-    Library: {
-        // Sistema
-        'sys_logo': { t:"HOLDER PRO", d:"Algoritmo de análise quantitativa de risco e ciclo.", r:"Versão 3.4 MultiSource." },
-        'sys_title': { t:"PAINEL DE CONTROLE", d:"Visão geral do mercado com foco em longo prazo.", s:"Use para monitorar saúde da carteira." },
-        'sys_sync': { t:"STATUS DE SINCRONIZAÇÃO", d:"Indica atividade da API em tempo real.", c:"Atualiza a cada 720s." },
-        'sys_auto': { t:"AUTO REFRESH", d:"Contador regressivo para nova análise.", t:"Não feche a aba durante o sync." },
-        'btn_export': { t:"EXPORTAR DADOS", d:"Gera planilha Excel (.xlsx) com todos os indicadores calculados.", s:"Útil para backup ou análise offline." },
-        'btn_refresh': { t:"ATUALIZAR AGORA", d:"Força o recálculo de todos os ativos.", s:"Use após adicionar novos tokens." },
-        'btn_config': { t:"CONFIGURAÇÕES", d:"Gerencie sua lista de ativos e preferências.", s:"Adicione tokens em lote." },
-        'btn_add_token': { t:"ADICIONAR TOKEN", d:"Insere um novo par USDT ou ID Gecko.", t:"Aceita Binance ou CoinGecko." },
-        'btn_add_alert': { t:"CRIAR ALERTA", d:"Define um preço alvo para notificação.", s:"Use níveis de suporte/resistência." },
+            // --- LIBRARY (Tooltips) ---
+            Library: {
+                // Sistema
+                'sys_logo': { t:"HOLDER PRO", d:"Algoritmo de análise quantitativa de risco e ciclo.", r:"Versão 3.5 Hybrid." },
+                'sys_title': { t:"PAINEL DE CONTROLE", d:"Visão geral do mercado com foco em longo prazo.", s:"Use para monitorar saúde da carteira." },
+                'sys_sync': { t:"STATUS DE SINCRONIZAÇÃO", d:"Indica atividade da API em tempo real.", c:"Atualiza a cada 720s." },
+                'sys_auto': { t:"AUTO REFRESH", d:"Contador regressivo para nova análise.", t:"Não feche a aba durante o sync." },
+                'btn_export': { t:"EXPORTAR DADOS", d:"Gera planilha Excel (.xlsx) com todos os indicadores calculados.", s:"Útil para backup ou análise offline." },
+                'btn_refresh': { t:"ATUALIZAR AGORA", d:"Força o recálculo de todos os ativos.", s:"Use após adicionar novos tokens." },
+                'btn_config': { t:"CONFIGURAÇÕES", d:"Gerencie sua lista de ativos e preferências.", s:"Adicione tokens em lote." },
+                'btn_add_token': { t:"ADICIONAR TOKEN", d:"Insere um novo par USDT ou ID Gecko.", t:"Aceita Binance ou CoinGecko." },
+                'btn_add_alert': { t:"CRIAR ALERTA", d:"Define um preço alvo para notificação.", s:"Use níveis de suporte/resistência." },
 
-        // Tabela Principal
-        'table_header': { t:"PAINEL DE RISCO", d:"Ranking de ativos ordenado pelo Score Holder 3.1.", s:"Foque nos ativos com Score > 70 e Risco A ou B." },
-        'score_total': { t:"SCORE HOLDER 3.1", d:"Nota final de qualidade (0-100).", c:"Valuation(40%) + Ciclo(30%) + Liquidez(20%) + Técnico(10%).", r:">70: Excelente, <40: Ruim.", s:"Priorize ativos com score alto para entradas." },
-        'log_zone': { t:"ZONA LOGARÍTMICA", d:"Posição do preço dentro do canal de regressão de longo prazo.", c:"((LogPreço - LogFundo) / (LogTopo - LogFundo)) * 100.", r:"0-20%: Fundo, 80-100%: Topo.", s:"Compre em zonas baixas (<30%), Venda em zonas altas (>70%)." },
-        'asymmetry': { t:"ASSIMETRIA REAL", d:"Relação Potencial de Lucro / Risco Real.", c:"Upside até Topo Log / Downside até Suporte ou Volatilidade.", r:">4x: Excelente assimetria.", s:"Busque assimetrias altas para proteger capital." },
-        'prob_emp': { t:"PROBABILIDADE EMPÍRICA", d:"Chance histórica de lucro baseada em padrões passados idênticos.", c:"Backtest de situações similares de Desvio Padrão.", r:">60%: Alta probabilidade.", t:"Passado não garante futuro." },
-        'risk_class': { t:"CLASSE DE RISCO", d:"Categorização de segurança estrutural.", c:"Baseado em FDV, Liquidez e Drawdown do ATH.", r:"A: Muito Seguro -> F: Muito Arriscado.", t:"Evite Classe F para Hold." },
-        
-        // Tabs & Zones
-        'tab_acc': { t:"FASE DE ACUMULAÇÃO", d:"Ativos baratos historicamente (Fundo do Canal Log).", s:"Melhor momento para DCA." },
-        'tab_hold': { t:"FASE DE HOLD", d:"Ativos em preço justo ou tendência intermediária.", s:"Manter posição, evitar compras pesadas." },
-        'tab_dist': { t:"FASE DE DISTRIBUIÇÃO", d:"Ativos caros historicamente (Topo do Canal Log).", s:"Realizar lucros parciais." },
-        'zone_buy': { t:"ZONA DE COMPRA", d:"Ativos abaixo de 30% do canal logarítmico.", s:"Foco total em acumulação." },
-        'zone_hold': { t:"ZONA NEUTRA", d:"Ativos entre 40% e 60% do canal.", s:"Aguardar definição." },
-        'zone_sell': { t:"ZONA DE VENDA", d:"Ativos acima de 70% do canal.", s:"Prepare saídas escalonadas." },
-        
-        // Painel Alertas
-        'panel_alerts': { t:"MONITORAMENTO", d:"Lista de preços-alvo vigentes.", s:"Mantenha limpo, remova alertas já atingidos." },
-
-        // Card Metrics
-        'price_curr': { t:"PREÇO ATUAL", d:"Último preço negociado na Binance/Gecko (USD)." },
-        'chg_1h': { t:"VARIAÇÃO 1H", d:"Mudança percentual na última hora.", s:"Mede momentum imediato." },
-        'chg_24h': { t:"VARIAÇÃO 24H", d:"Mudança percentual no último dia.", s:"Principal métrica de volatilidade diária." },
-        'chg_7d': { t:"VARIAÇÃO 7D", d:"Mudança percentual na semana.", s:"Identifica tendência de curto prazo." },
-        'chg_30d': { t:"VARIAÇÃO 30D", d:"Mudança percentual no mês.", s:"Identifica tendência de médio prazo." },
-        'mcap': { t:"MARKET CAP", d:"Valor de mercado do supply circulante.", c:"Preço * Circulating Supply.", r:"Microcap < 100M, Largecap > 10B.", t:"Menor Mcap = Maior Volatilidade." },
-        
-        'fdv_ratio': { t:"RAZÃO MC/FDV", d:"Quanto do supply total já está no mercado.", c:"Market Cap / Fully Diluted Valuation.", r:">0.8: Bom (pouca inflação), <0.2: Ruim (muita inflação).", t:"Cuidado com desbloqueios de tokens." },
-        'vol_anual': { t:"VOLATILIDADE ANUAL", d:"Expectativa estatística de variação de preço.", c:"Desvio Padrão dos retornos * Raiz(52).", r:">100%: Altíssima volatilidade.", s:"Reduza tamanho da posição em alta volatilidade." },
-        'rsi_w': { t:"RSI SEMANAL", d:"Índice de Força Relativa (14 períodos).", r:"<30: Sobrevendido (Oportunidade), >70: Sobrecomprado (Risco).", s:"Confluência ideal: RSI baixo + Zona Log baixa." },
-        
-        'log_band': { t:"BARRA DE REGRESSÃO", d:"Visualização da posição do preço no canal.", s:"Marcador à esquerda = Barato. Marcador à direita = Caro." },
-        'cycle_phase': { t:"FASE DO CICLO", d:"Interpretação textual da zona logarítmica.", r:"Acumular, Manter, Realizar." },
-        
-        'card_alerts': { t:"ALERTAS DESTE ATIVO", d:"Alvos específicos configurados para este token." },
-        'fdv': { t:"FULLY DILUTED VALUATION", d:"Valor de mercado se todos os tokens existissem hoje.", t:"Se FDV >> Mcap, risco de diluição." },
-        'ath_dist': { t:"DESCONTO DO ATH", d:"Queda percentual desde o topo histórico.", s:"Em Bull Market, descontos >50% em bons projetos são oportunidades." },
-        'liq_ratio': { t:"RAZÃO DE LIQUIDEZ", d:"Volume negociado em relação ao tamanho do ativo.", c:"Vol24h / Mcap.", r:">0.05: Líquido, <0.01: Ilíquido.", t:"Baixa liquidez = dificuldade de sair da posição." },
-        'sma_status': { t:"SMA 200 SEMANAS", d:"Média de longo prazo. O suporte mais forte do mercado.", s:"Preço acima = Bullish. Preço abaixo = Bearish/Acumulação." },
-    },
-
-    // --- CORE FUNCTIONALITY COM SUPABASE ---
-    Core: {
-        init: async () => {
-    console.log('🚀 Inicializando CryptoPanel com Supabase e MultiSource...');
-    
-    try {
-        // Verificar conexão com Supabase
-        if (!supabase) {
-            console.error('❌ Supabase não inicializado');
-            alert('Erro: Supabase não configurado. Configure as credenciais.');
-            return;
-        }
-        
-        // Testar conexão com Supabase
-        const { error: connError } = await supabase.from('tokens').select('count').limit(1);
-        if (connError) {
-            console.error('❌ Erro na conexão com Supabase:', connError);
-            alert('Erro na conexão com Supabase. Verifique as credenciais e tabelas.');
-            return;
-        }
-        
-        // Carregar tokens do Supabase
-        await App.Core.loadTokens();
-        
-        // Carregar alertas do Supabase
-        await App.Core.loadAlerts();
-        
-        // Configurar UI
-        App.UI.setupMobileMenu(); 
-        App.UI.tooltips(); 
-        App.UI.grid();
-        
-        // Configurar escuta em tempo real
-        App.Core.setupRealtime();
-        
-        // Configurar listeners dos botões
-        document.getElementById('refreshDataDesktop').addEventListener('click', () => App.Core.refreshData());
-        document.getElementById('refreshDataMobile').addEventListener('click', () => App.Core.refreshData());
-        
-        // Carregar dados iniciais
-        await App.Core.refreshData();
-        
-        // Verificar alertas após dados carregados
-        await App.Alerts.checkAll();
-        App.Alerts.renderPanel();
-        
-        // Configurar auto-refresh
-        let countdown = 720;
-        const updateCountdown = () => {
-            countdown--;
-            if (countdown <= 0) {
-                countdown = 720;
-                App.Core.refreshData();
-            }
-            document.getElementById('countdown-desktop').innerText = countdown + 's';
-            document.getElementById('countdown-mobile').innerText = countdown + 's';
-        };
-        
-        setInterval(updateCountdown, 1000);
-        
-        // Atualizar UI
-        document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-        console.log('✅ CryptoPanel inicializado com sucesso!');
-        
-    } catch (error) {
-        console.error('❌ Erro na inicialização:', error);
-        document.getElementById('last-update').innerText = 'Erro na inicialização';
-        alert('Erro ao inicializar. Verifique console (F12) para detalhes.');
-    }
-},
-
-        // Carregar tokens do Supabase
-        loadTokens: async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('tokens')
-                    .select('*');
+                // Tabela Principal
+                'table_header': { t:"PAINEL DE RISCO", d:"Ranking de ativos ordenado pelo Score Holder 3.1.", s:"Foque nos ativos com Score > 70 e Risco A ou B." },
+                'score_total': { t:"SCORE HOLDER 3.1", d:"Nota final de qualidade (0-100).", c:"Valuation(40%) + Ciclo(30%) + Liquidez(20%) + Técnico(10%).", r:">70: Excelente, <40: Ruim.", s:"Priorize ativos com score alto para entradas." },
+                'log_zone': { t:"ZONA LOGARÍTMICA", d:"Posição do preço dentro do canal de regressão de longo prazo.", c:"((LogPreço - LogFundo) / (LogTopo - LogFundo)) * 100.", r:"0-20%: Fundo, 80-100%: Topo.", s:"Compre em zonas baixas (<30%), Venda em zonas altas (>70%)." },
+                'asymmetry': { t:"ASSIMETRIA REAL", d:"Relação Potencial de Lucro / Risco Real.", c:"Upside até Topo Log / Downside até Suporte ou Volatilidade.", r:">4x: Excelente assimetria.", s:"Busque assimetrias altas para proteger capital." },
+                'prob_emp': { t:"PROBABILIDADE EMPÍRICA", d:"Chance histórica de lucro baseada em padrões passados idênticos.", c:"Backtest de situações similares de Desvio Padrão.", r:">60%: Alta probabilidade.", t:"Passado não garante futuro." },
+                'risk_class': { t:"CLASSE DE RISCO", d:"Categorização de segurança estrutural.", c:"Baseado em FDV, Liquidez e Drawdown do ATH.", r:"A: Muito Seguro -> F: Muito Arriscado.", t:"Evite Classe F para Hold." },
                 
-                if (error) throw error;
+                // Tabs & Zones
+                'tab_acc': { t:"FASE DE ACUMULAÇÃO", d:"Ativos baratos historicamente (Fundo do Canal Log).", s:"Melhor momento para DCA." },
+                'tab_hold': { t:"FASE DE HOLD", d:"Ativos em preço justo ou tendência intermediária.", s:"Manter posição, evitar compras pesadas." },
+                'tab_dist': { t:"FASE DE DISTRIBUIÇÃO", d:"Ativos caros historicamente (Topo do Canal Log).", s:"Realizar lucros parciais." },
+                'zone_buy': { t:"ZONA DE COMPRA", d:"Ativos abaixo de 30% do canal logarítmico.", s:"Foco total em acumulação." },
+                'zone_hold': { t:"ZONA NEUTRA", d:"Ativos entre 40% e 60% do canal.", s:"Aguardar definição." },
+                'zone_sell': { t:"ZONA DE VENDA", d:"Ativos acima de 70% do canal.", s:"Prepare saídas escalonadas." },
                 
-                // ORDENAÇÃO ALFABÉTICA DOS CARDS SOLICITADA
-                const sortedData = data.sort((a, b) => a.symbol.localeCompare(b.symbol));
+                // Painel Alertas
+                'panel_alerts': { t:"MONITORAMENTO", d:"Lista de preços-alvo vigentes.", s:"Mantenha limpo, remova alertas já atingidos." },
 
-                App.State.tokens = sortedData.map(t => ({
-                    symbol: t.symbol,
-                    name: t.name || t.symbol.replace('USDT', ''),
-                    coinId: t.coin_id || t.symbol.replace('USDT', '').toLowerCase()
-                }));
+                // Card Metrics
+                'price_curr': { t:"PREÇO ATUAL", d:"Último preço negociado na Binance/Gecko (USD)." },
+                'chg_1h': { t:"VARIAÇÃO 1H", d:"Mudança percentual na última hora.", s:"Mede momentum imediato." },
+                'chg_24h': { t:"VARIAÇÃO 24H", d:"Mudança percentual no último dia.", s:"Principal métrica de volatilidade diária." },
+                'chg_7d': { t:"VARIAÇÃO 7D", d:"Mudança percentual na semana.", s:"Identifica tendência de curto prazo." },
+                'chg_30d': { t:"VARIAÇÃO 30D", d:"Mudança percentual no mês.", s:"Identifica tendência de médio prazo." },
+                'mcap': { t:"MARKET CAP", d:"Valor de mercado do supply circulante.", c:"Preço * Circulating Supply.", r:"Microcap < 100M, Largecap > 10B.", t:"Menor Mcap = Maior Volatilidade." },
                 
-                console.log(`📊 ${App.State.tokens.length} tokens carregados do Supabase`);
-            } catch (error) {
-                console.error('❌ Erro ao carregar tokens:', error);
-                // Fallback básico
-                App.State.tokens = [
-                    {symbol: 'BTCUSDT', name: 'Bitcoin', coinId: 'bitcoin'},
-                    {symbol: 'ETHUSDT', name: 'Ethereum', coinId: 'ethereum'}
-                ];
-            }
-        },
+                'fdv_ratio': { t:"RAZÃO MC/FDV", d:"Quanto do supply total já está no mercado.", c:"Market Cap / Fully Diluted Valuation.", r:">0.8: Bom (pouca inflação), <0.2: Ruim (muita inflação).", t:"Cuidado com desbloqueios de tokens." },
+                'vol_anual': { t:"VOLATILIDADE ANUAL", d:"Expectativa estatística de variação de preço.", c:"Desvio Padrão dos retornos * Raiz(52).", r:">100%: Altíssima volatilidade.", s:"Reduza tamanho da posição em alta volatilidade." },
+                'rsi_w': { t:"RSI SEMANAL", d:"Índice de Força Relativa (14 períodos).", r:"<30: Sobrevendido (Oportunidade), >70: Sobrecomprado (Risco).", s:"Confluência ideal: RSI baixo + Zona Log baixa." },
+                
+                'log_band': { t:"BARRA DE REGRESSÃO", d:"Visualização da posição do preço no canal.", s:"Marcador à esquerda = Barato. Marcador à direita = Caro." },
+                'cycle_phase': { t:"FASE DO CICLO", d:"Interpretação textual da zona logarítmica.", r:"Acumular, Manter, Realizar." },
+                
+                'card_alerts': { t:"ALERTAS DESTE ATIVO", d:"Alvos específicos configurados para este token." },
+                'fdv': { t:"FULLY DILUTED VALUATION", d:"Valor de mercado se todos os tokens existissem hoje.", t:"Se FDV >> Mcap, risco de diluição." },
+                'ath_dist': { t:"DESCONTO DO ATH", d:"Queda percentual desde o topo histórico.", s:"Em Bull Market, descontos >50% em bons projetos são oportunidades." },
+                'liq_ratio': { t:"RAZÃO DE LIQUIDEZ", d:"Volume negociado em relação ao tamanho do ativo.", c:"Vol24h / Mcap.", r:">0.05: Líquido, <0.01: Ilíquido.", t:"Baixa liquidez = dificuldade de sair da posição." },
+                'sma_status': { t:"SMA 200 SEMANAS", d:"Média de longo prazo. O suporte mais forte do mercado.", s:"Preço acima = Bullish. Preço abaixo = Bearish/Acumulação." },
+            },
 
-        // Carregar alertas do Supabase
+            // --- CORE FUNCTIONALITY COM SUPABASE ---
+            Core: {
+                init: async () => {
+                    console.log('🚀 Inicializando CryptoPanel v3.5 Hybrid...');
+                    
+                    try {
+                        if (!supabase) {
+                            alert('Erro: Supabase não configurado.');
+                            return;
+                        }
+                        
+                        // Testar conexão
+                        const { error: connError } = await supabase.from('tokens').select('count').limit(1);
+                        if (connError) {
+                            console.error('❌ Erro Supabase:', connError);
+                            return;
+                        }
+                        
+                        await App.Core.loadTokens();
+                        await App.Core.loadAlerts();
+                        App.UI.setupMobileMenu(); 
+                        App.UI.tooltips(); 
+                        App.UI.grid();
+                        App.Core.setupRealtime();
+                        
+                        document.getElementById('refreshDataDesktop').addEventListener('click', () => App.Core.refreshData());
+                        document.getElementById('refreshDataMobile').addEventListener('click', () => App.Core.refreshData());
+                        
+                        await App.Core.refreshData();
+                        await App.Alerts.checkAll();
+                        App.Alerts.renderPanel();
+                        
+                        let countdown = 720;
+                        const updateCountdown = () => {
+                            countdown--;
+                            if (countdown <= 0) {
+                                countdown = 720;
+                                App.Core.refreshData();
+                            }
+                            document.getElementById('countdown-desktop').innerText = countdown + 's';
+                            document.getElementById('countdown-mobile').innerText = countdown + 's';
+                        };
+                        
+                        setInterval(updateCountdown, 1000);
+                        document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                        
+                    } catch (error) {
+                        console.error('❌ Erro na inicialização:', error);
+                    }
+                },
+
+                loadTokens: async () => {
+                    try {
+                        const { data, error } = await supabase.from('tokens').select('*');
+                        if (error) throw error;
+                        
+                        const sortedData = data.sort((a, b) => a.symbol.localeCompare(b.symbol));
+
+                        // Mapeia incluindo o novo campo source
+                        App.State.tokens = sortedData.map(t => ({
+                            symbol: t.symbol,
+                            name: t.name || t.symbol.replace('USDT', ''),
+                            coinId: t.coin_id || t.symbol.replace('USDT', '').toLowerCase(),
+                            source: t.source || 'binance' // Padroniza como binance se for nulo
+                        }));
+                        
+                        console.log(`📊 ${App.State.tokens.length} tokens carregados.`);
+                    } catch (error) {
+                        console.error('❌ Erro tokens:', error);
+                    }
+                },
+
                 loadAlerts: async () => {
-    try {
-        console.log('🔄 Carregando alertas do Supabase...');
-        
-        // Verificar se supabase está inicializado
-        if (!supabase) {
-            console.error('❌ Supabase não inicializado');
-            App.State.alerts = [];
-            return;
-        }
-        
-        const { data, error } = await supabase
-            .from('alerts')
-            .select('*');
-        
-        if (error) {
-            console.error('❌ Erro ao buscar alertas:', error);
-            throw error;
-        }
-        
-        App.State.alerts = (data || []).map(a => ({
-            id: a.id,
-            symbol: a.symbol,
-            type: a.type,
-            targetPrice: parseFloat(a.target_price) || 0,
-            notes: a.notes || '',
-            triggered: a.triggered || false
-        }));
-        
-        console.log(`✅ ${App.State.alerts.length} alertas carregados do Supabase`);
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar alertas:', error);
-        App.State.alerts = [];
-    }
-},
+                    try {
+                        const { data, error } = await supabase.from('alerts').select('*');
+                        if (error) throw error;
+                        App.State.alerts = (data || []).map(a => ({
+                            id: a.id,
+                            symbol: a.symbol,
+                            type: a.type,
+                            targetPrice: parseFloat(a.target_price) || 0,
+                            notes: a.notes || '',
+                            triggered: a.triggered || false
+                        }));
+                    } catch (error) {
+                        console.error('❌ Erro alertas:', error);
+                        App.State.alerts = [];
+                    }
+                },
 
-        // Configurar escuta em tempo real
-        setupRealtime: () => {
-            // Escutar mudanças em tokens
-            supabase
-                .channel('tokens-changes')
-                .on('postgres_changes', 
-                    { event: '*', schema: 'public', table: 'tokens' },
-                    async () => {
-                        console.log('🔄 Mudança detectada em tokens, recarregando...');
+                setupRealtime: () => {
+                    supabase.channel('tokens-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'tokens' }, async () => {
                         await App.Core.loadTokens();
                         App.UI.grid();
                         App.Core.refreshData();
-                    }
-                )
-                .subscribe();
+                    }).subscribe();
 
-            // Escutar mudanças em alertas
-            supabase
-                .channel('alerts-changes')
-                .on('postgres_changes',
-                    { event: '*', schema: 'public', table: 'alerts' },
-                    async () => {
-                        console.log('🔄 Mudança detectada em alertas, recarregando...');
+                    supabase.channel('alerts-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, async () => {
                         await App.Core.loadAlerts();
                         App.Alerts.renderPanel();
                         App.UI.updateAllCards();
-                    }
-                )
-                .subscribe();
-        },
+                    }).subscribe();
+                },
 
-        refreshData: async () => {
-    console.log('🔄 Atualizando dados de mercado...');
-    document.getElementById('last-update').innerText = "Analyzing...";
-    
-    // Limpar dados antigos
-    App.State.data = {};
-    
-    // Usar Promise.all para buscar dados em paralelo com limite de concorrência
-    const batchSize = 3; 
-    for (let i = 0; i < App.State.tokens.length; i += batchSize) {
-        const batch = App.State.tokens.slice(i, i + batchSize);
-        
-        await Promise.all(batch.map(async (token) => {
-            try {
-                console.log(`📊 Buscando dados para ${token.symbol}...`);
-                
-                const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
-                    App.Core.fetchKlines(token, '1h', 24),
-                    App.Core.fetchKlines(token, '1d', 35),
-                    App.Core.fetchKlines(token, '1w', 250),
-                    App.Core.fetchFundamentals(token.coinId)
-                ]);
-
-                if (klinesWeekly && klinesWeekly.length > 50) {
-                    const quant = App.Analysis.run(token.symbol, klinesWeekly, klinesDaily, klines1h, fundamentals);
-                    App.State.data[token.symbol] = { 
-                        klines: { w: klinesWeekly, d: klinesDaily, h: klines1h }, 
-                        fundamentals, 
-                        analysis: quant 
-                    };
+                refreshData: async () => {
+                    console.log('🔄 Atualizando dados...');
+                    document.getElementById('last-update').innerText = "Analyzing...";
+                    App.State.data = {};
                     
-                    console.log(`✅ ${token.symbol}: Score ${quant.score}, Preço $${quant.price.toFixed(2)}`);
-                } else {
-                    console.warn(`⚠️ Dados insuficientes para ${token.symbol}`);
-                }
-            } catch (error) {
-                console.error(`❌ Erro ao processar ${token.symbol}:`, error.message);
-            }
-        }));
-        
-        // Pequena pausa entre batches para não sobrecarregar APIs
-        if (i + batchSize < App.State.tokens.length) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-    }
-    
-    // Verificar alertas com os novos dados
-    await App.Alerts.checkAll();
-    
-    // Atualizar todas as visualizações
-    App.UI.updateAllCards(); 
-    App.Opportunities.render();
-    App.Alerts.renderPanel();
-    
-    document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    console.log(`✅ Dados atualizados para ${Object.keys(App.State.data).length} tokens`);
-},
+                    const batchSize = 3; 
+                    for (let i = 0; i < App.State.tokens.length; i += batchSize) {
+                        const batch = App.State.tokens.slice(i, i + batchSize);
+                        await Promise.all(batch.map(async (token) => {
+                            try {
+                                const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
+                                    App.Core.fetchKlines(token, '1h', 24),
+                                    App.Core.fetchKlines(token, '1d', 35),
+                                    App.Core.fetchKlines(token, '1w', 250),
+                                    App.Core.fetchFundamentals(token.coinId)
+                                ]);
 
-        // CORRIGIDO: Detecção robusta Binance vs Gecko
-        fetchKlines: async (token, interval, limit) => {
-            let useBinance = false;
-            
-            // Verificação simples: se o símbolo termina em USDT e NÃO temos um coinId forçado diferente
-            // OU se sabemos explicitamente que é Binance.
-            // A melhor forma agora é tentar Binance, se falhar, tentar Gecko.
-            
-            try {
-                // Tenta Binance primeiro se parecer um par Binance
-                if (token.symbol.endsWith('USDT')) {
-                    const response = await fetch(`${API.BINANCE}/klines?symbol=${token.symbol}&interval=${interval}&limit=${limit}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        return data.map(k => ({ 
-                            time: k[0], 
-                            open: parseFloat(k[1]), 
-                            high: parseFloat(k[2]), 
-                            low: parseFloat(k[3]), 
-                            close: parseFloat(k[4]), 
-                            volume: parseFloat(k[5]) 
+                                if (klinesWeekly && klinesWeekly.length > 30) {
+                                    const quant = App.Analysis.run(token.symbol, klinesWeekly, klinesDaily, klines1h, fundamentals);
+                                    App.State.data[token.symbol] = { 
+                                        klines: { w: klinesWeekly, d: klinesDaily, h: klines1h }, 
+                                        fundamentals, 
+                                        analysis: quant 
+                                    };
+                                }
+                            } catch (error) {
+                                console.error(`❌ Erro ${token.symbol}:`, error.message);
+                            }
                         }));
-                    }
-                }
-                
-                // Se falhar ou não for Binance, tenta CoinGecko pelo ID
-                if (token.coinId) {
-                    const daysMap = { '1h': '1', '1d': '30', '1w': 'max' };
-                    const days = daysMap[interval] || 'max';
-                    
-                    const response = await fetch(`${API.COINGECKO}/coins/${token.coinId}/market_chart?vs_currency=usd&days=${days}`);
-                    if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                    const data = await response.json();
-                    
-                    // CoinGecko Market Chart retorna apenas Preços. Criamos velas fictícias (Open=Close)
-                    let candles = data.prices.map(p => ({
-                        time: p[0],
-                        open: p[1],
-                        high: p[1],
-                        low: p[1],
-                        close: p[1],
-                        volume: 0 
-                    }));
-
-                    // Amostragem para reduzir carga se for 'max'
-                    if (interval === '1w' && candles.length > 250) {
-                         // Tentar pegar 1 ponto por semana aproximadamente
-                         const filtered = [];
-                         // Dados diários/horários são muitos. 
-                         // Para semanal, pegamos o último ponto de cada 7 dias aprox? 
-                         // Simplificação: Pegar os últimos 'limit' pontos
-                         return candles.slice(-limit);
+                        if (i + batchSize < App.State.tokens.length) await new Promise(resolve => setTimeout(resolve, 500));
                     }
                     
-                    return candles.slice(-limit);
-                }
-                return [];
+                    await App.Alerts.checkAll();
+                    App.UI.updateAllCards(); 
+                    App.Opportunities.render();
+                    App.Alerts.renderPanel();
+                    document.getElementById('last-update').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                },
 
-            } catch (error) {
-                console.error(`❌ Erro klines (${token.symbol}):`, error.message);
-                return [];
-            }
-        },
+                fetchKlines: async (token, interval, limit) => {
+                    try {
+                        // === ROTA BINANCE ===
+                        if (token.source === 'binance' || (!token.source && token.symbol.endsWith('USDT'))) {
+                            const response = await fetch(`${API.BINANCE}/klines?symbol=${token.symbol}&interval=${interval}&limit=${limit}`);
+                            if (response.ok) {
+                                const data = await response.json();
+                                return data.map(k => ({ 
+                                    time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), 
+                                    low: parseFloat(k[3]), close: parseFloat(k[4]), volume: parseFloat(k[5]) 
+                                }));
+                            }
+                        }
+                        
+                        // === ROTA COINGECKO ===
+                        if (token.source === 'coingecko' || token.coinId) {
+                            const daysMap = { '1h': '1', '1d': '30', '1w': 'max' };
+                            const days = daysMap[interval] || 'max';
+                            
+                            const response = await fetch(`${API.COINGECKO}/coins/${token.coinId}/market_chart?vs_currency=usd&days=${days}`);
+                            if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
+                            const data = await response.json();
+                            
+                            let candles = data.prices.map(p => ({
+                                time: p[0], open: p[1], high: p[1], low: p[1], close: p[1], volume: 0 
+                            }));
 
-        fetchFundamentals: async (coinId) => {
-            if(!coinId) return null;
-            try {
-                const response = await fetch(`${API.COINGECKO}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json();
-                const md = data.market_data;
-                return {
-                    price: md.current_price?.usd || 0,
-                    mcap: md.market_cap?.usd || 0,
-                    fdv: md.fully_diluted_valuation?.usd || md.market_cap?.usd || 0,
-                    vol24: md.total_volume?.usd || 0,
-                    ath: md.ath?.usd || 0,
-                    ath_change: md.ath_change_percentage?.usd || 0,
-                    circ_supply: md.circulating_supply || 0,
-                    total_supply: md.total_supply || md.circulating_supply || 0
-                };
-            } catch (error) {
-                console.error(`❌ Erro ao buscar fundamentos para ${coinId}:`, error);
-                return null;
-            }
-        }
-    },
+                            // Otimização para dados semanais pesados da Gecko
+                            if (interval === '1w' && candles.length > limit) {
+                                const weekly = [];
+                                // Tenta pegar um candle a cada 7 dias
+                                for(let i = candles.length - 1; i >= 0; i -= 7) {
+                                    weekly.unshift(candles[i]);
+                                    if(weekly.length >= limit) break;
+                                }
+                                return weekly;
+                            }
+                            return candles.slice(-limit);
+                        }
+                        return [];
 
-    // --- ANALYSIS ENGINE (MANTENHA IGUAL) ---
-    Analysis: {
-        run: (symbol, w, d, h, fund) => {
-            const closesW = w.map(k => k.close);
-            const currentPrice = closesW[closesW.length - 1] || 0;
-            const rsiW = Quant.rsi(closesW, 14);
-            const volAnn = Quant.volatility(closesW); 
-            const sma200W = Quant.sma(closesW, 200);
+                    } catch (error) {
+                        return [];
+                    }
+                },
 
-            const reg = Quant.logRegression(closesW);
-            const logPrice = Math.log(Math.max(currentPrice, 0.0001));
-            const logBottom = Math.log(Math.max(reg.bottom, 0.0001));
-            const logTop = Math.log(Math.max(reg.top, 0.0001));
-            const bandRange = logTop - logBottom;
-            const positionInBand = bandRange > 0 ? Math.max(0, Math.min(100, ((logPrice - logBottom) / bandRange) * 100)) : 50;
-
-            const upside = Math.max(0, reg.top - currentPrice);
-            const distLog = Math.max(0, currentPrice - reg.bottom);
-            const distSMA = sma200W ? Math.max(0, currentPrice - sma200W) : 0;
-            const volDrop = currentPrice * (volAnn / 2); 
-            const downsideReal = Math.max(distLog, distSMA, volDrop);
-            const asymmetry = downsideReal === 0 ? 10 : (upside / downsideReal);
-
-            const zScore = (Math.log(Math.max(currentPrice, 0.0001)) - Math.log(Math.max(reg.regressionPrice, 0.0001))) / reg.stdev;
-            const probProfit = Quant.empiricalProb(closesW, zScore, reg.stdev, reg.params);
-
-            const chg1h = h && h.length > 1 ? ((h[h.length-1].close - h[0].open)/h[0].open)*100 : 0;
-            const chg24h = d && d.length > 1 ? ((d[d.length-1].close - d[d.length-2].close)/d[d.length-2].close)*100 : 0; 
-            const chg7d = d && d.length > 7 ? ((d[d.length-1].close - d[d.length-8].close)/d[d.length-8].close)*100 : 0;
-            const chg30d = d && d.length > 30 ? ((d[d.length-1].close - d[d.length-31].close)/d[d.length-31].close)*100 : 0;
-
-            const inflation = fund ? ((fund.total_supply - fund.circ_supply) / Math.max(fund.circ_supply, 1)) * 100 : 0;
-            let rawLiq = fund && fund.mcap > 0 ? (fund.vol24 / fund.mcap) : 0;
-            const liqRatio = Math.min(rawLiq, 0.3);
-
-            let riskScore = 0;
-            const fdvRatio = fund && fund.mcap > 0 ? fund.fdv / fund.mcap : 1;
-            if(fdvRatio > 5) riskScore += 3;
-            else if(fdvRatio > 2) riskScore += 1;
-            if(rawLiq < 0.01) riskScore += 3;
-            else if(rawLiq < 0.03) riskScore += 1;
-            if(fund && Math.abs(fund.ath_change) > 90) riskScore += 3;
-            else if(fund && Math.abs(fund.ath_change) > 75) riskScore += 1;
-
-            const riskPenalty = Math.min(20, riskScore * 2.5);
-            const riskClass = riskScore >= 7 ? 'F' : riskScore >= 5 ? 'D' : riskScore >= 3 ? 'C' : riskScore >= 1 ? 'B' : 'A';
-
-            let score = 0;
-            let sc_val_ath = Math.min(100, Math.max(0, Math.abs(fund?.ath_change || 0) * 1.2)); 
-            let sc_val_inf = Math.max(0, 100 - (inflation * 2));
-            score += 0.40 * (0.6*sc_val_ath + 0.4*sc_val_inf);
-
-            let sc_cyc_band = 100 - positionInBand; 
-            let sc_cyc_sma = sma200W ? ((currentPrice < sma200W) ? 100 : Math.max(0, 100 - ((currentPrice/sma200W - 1)*100))) : 50;
-            score += 0.30 * (0.7*sc_cyc_band + 0.3*sc_cyc_sma);
-
-            let sc_fund_liq = Math.min(100, liqRatio * 333); 
-            score += 0.20 * sc_fund_liq;
-
-            let sc_tec_rsi = Math.max(0, Math.min(100, (70 - rsiW) * 2.5));
-            score += 0.10 * sc_tec_rsi;
-
-            score = Math.max(0, Math.min(100, score - riskPenalty));
-
-            return {
-                price: currentPrice, 
-                rsiW, 
-                volAnn, 
-                sma200W,
-                reg, 
-                positionInBand, 
-                asymmetry, 
-                probProfit,
-                chg: { h1: chg1h, h24: chg24h, d7: chg7d, d30: chg30d },
-                fund: { inflation, liqRatio, ath_change: fund?.ath_change, fdv: fund?.fdv },
-                risk: { class: riskClass, penalty: riskPenalty },
-                score: Math.round(score)
-            };
-        }
-    },
-
-    // --- UI HANDLERS (MANTENHA IGUAL) ---
-    UI: {
-        setupMobileMenu: () => {
-            const btn = document.getElementById('mobile-menu-btn');
-            const menu = document.getElementById('mobile-controls');
-            btn.addEventListener('click', () => {
-                menu.classList.toggle('open');
-                const icon = btn.querySelector('i');
-                icon.className = menu.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
-            });
-        },
-        switchTab: (tabName) => {
-            App.State.activeTab = tabName;
-            ['agressive', 'fair', 'full'].forEach(t => {
-                const btn = document.getElementById(`tab-btn-${t}`);
-                const card = document.getElementById(`zone-card-${t}`);
-                if (btn && card) {
-                    btn.className = `flex-1 py-2 text-[10px] font-bold uppercase rounded transition-all ${t === tabName ? 'mobile-tab-active' : 'mobile-tab-inactive'}`;
-                    if (window.innerWidth < 768) {
-                        card.style.display = (t === tabName) ? 'flex' : 'none';
-                    } else {
-                        card.style.display = 'flex';
+                fetchFundamentals: async (coinId) => {
+                    if(!coinId) return null;
+                    try {
+                        const response = await fetch(`${API.COINGECKO}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`);
+                        if (!response.ok) return null;
+                        const data = await response.json();
+                        const md = data.market_data;
+                        return {
+                            price: md.current_price?.usd || 0,
+                            mcap: md.market_cap?.usd || 0,
+                            fdv: md.fully_diluted_valuation?.usd || md.market_cap?.usd || 0,
+                            vol24: md.total_volume?.usd || 0,
+                            ath: md.ath?.usd || 0,
+                            ath_change: md.ath_change_percentage?.usd || 0,
+                            circ_supply: md.circulating_supply || 0,
+                            total_supply: md.total_supply || md.circulating_supply || 0
+                        };
+                    } catch (error) {
+                        return null;
                     }
                 }
-            });
-        },
-        scrollToCard: (symbol) => {
-            const card = document.querySelector(`.card[data-symbol="${symbol}"]`);
-            if(card) {
-                card.scrollIntoView({behavior:'smooth', block:'center'});
-                const cardBody = card.querySelector('.card-body');
-                if(cardBody && cardBody.classList.contains('hidden')) {
-                    App.UI.toggleCard(card.querySelector('.p-4'));
-                }
-            }
-        },
-        tooltips: () => {
-            const ov = document.getElementById('metric-tooltip-overlay');
-            document.body.addEventListener('click', (e) => { 
-                let t = e.target.closest('[data-tip]'); 
-                if(t){ 
-                    let k = t.dataset.tip;
-                    let d = App.Library[k];
-                    if(d) {
-                        let html = `<div class="flex-1">
-                            <div class="tt-section"><div class="tt-header tt-def"><i class="fa-solid fa-book"></i> Definição</div><div class="tt-text text-white font-bold">${d.t}</div><div class="tt-text mt-1">${d.d}</div></div>`;
-                        if(d.c) html += `<div class="tt-section"><div class="tt-header tt-calc"><i class="fa-solid fa-calculator"></i> Lógica</div><div class="tt-text font-mono text-xs">${d.c}</div></div>`;
-                        if(d.r) html += `<div class="tt-section"><div class="tt-header tt-ref"><i class="fa-solid fa-ruler"></i> Referência</div><div class="tt-text">${d.r}</div></div>`;
-                        if(d.s) html += `<div class="tt-section"><div class="tt-header tt-strat"><i class="fa-solid fa-chess"></i> Estratégia</div><div class="tt-text">${d.s}</div></div>`;
-                        if(d.t) html += `<div class="tt-section"><div class="tt-header tt-trap"><i class="fa-solid fa-triangle-exclamation"></i> Atenção</div><div class="tt-text">${d.t}</div></div>`;
-                        html += `</div><button class="absolute top-2 right-2 p-2 text-gray-500 hover:text-white" onclick="this.parentElement.classList.add('tooltip-hidden');this.parentElement.classList.remove('tooltip-visible')"><i class="fa-solid fa-times"></i></button>`;
-                        ov.innerHTML = html;
-                        ov.classList.remove('tooltip-hidden'); 
-                        ov.classList.add('tooltip-visible');
-                    }
-                    e.stopPropagation(); 
-                } else if(!e.target.closest('#metric-tooltip-overlay')) {
-                     ov.classList.remove('tooltip-visible'); 
-                     ov.classList.add('tooltip-hidden'); 
-                }
-            });
-        },
-        grid: () => {
-            let g = document.getElementById('cards-grid');
-            if (!g) return;
-            
-            g.innerHTML='';
-            // App.State.tokens já está ordenado alfabeticamente no loadTokens
-            App.State.tokens.forEach(token => {
-                let tmpl = document.getElementById('card-template').content.cloneNode(true);
-                let el = tmpl.querySelector('.card');
-                el.dataset.symbol = token.symbol;
-                el.querySelector('.symbol-ticker').innerText = token.symbol.replace('USDT','');
-                el.querySelector('.symbol-name').innerText = token.name;
-                el.querySelector('.btn-remove').onclick = (e)=>{e.stopPropagation(); App.Token.rem(token.symbol)};
-                g.appendChild(el);
-            });
-            App.UI.switchTab('agressive');
-            window.addEventListener('resize', () => App.UI.switchTab(App.State.activeTab));
-        },
-        updateAllCards: () => {
-            App.State.tokens.forEach(token => {
-                const data = App.State.data[token.symbol];
-                if(data) {
-                    App.UI.updateTokenCard(token.symbol, data);
-                }
-            });
-        },
-        updateTokenCard: (symbol, data) => {
-            const card = document.querySelector(`.card[data-symbol="${symbol}"]`);
-            if(!card) return;
-            
-            const a = data.analysis;
-            const f = data.fundamentals;
-            
-            if (!a) return;
-            
-            // Header
-            card.querySelector('.price-display').innerText = '$' + a.price.toFixed(a.price < 1 ? 4 : 2);
-            if(f && f.mcap) {
-                const mcapText = f.mcap > 1e9 ? `$${(f.mcap/1e9).toFixed(1)}B` : f.mcap > 1e6 ? `$${(f.mcap/1e6).toFixed(0)}M` : `$${f.mcap.toFixed(0)}`;
-                card.querySelector('.market-cap-value').innerText = mcapText;
-            }
-            
-            // Score & Phase
-            const sb = card.querySelector('.score-badge');
-            sb.innerText = a.score || '--';
-            sb.className = `score-badge w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold text-black border border-white/20 shadow-lg cursor-help ${a.score>70?'bg-score-high':a.score<40?'bg-score-low':'bg-score-mid'}`;
-            
-            const pb = card.querySelector('.phase-badge');
-            const phaseName = a.positionInBand < 20 ? 'ACUMULAR' : a.positionInBand > 80 ? 'REALIZAR' : 'MANTER';
-            pb.innerText = phaseName;
-            pb.className = `phase-badge text-[9px] font-bold uppercase px-2 py-1 rounded bg-dark-800 text-gray-400 flex-1 text-center border border-gray-800 ${phaseName==='ACUMULAR'?'text-green-400 bg-green-900/20':phaseName==='REALIZAR'?'text-red-400 bg-red-900/20':'text-blue-400'}`;
-            
-            card.querySelector('.zone-badge').innerText = (a.positionInBand || 0).toFixed(0) + '% Log';
-            
-            // Variations
-            const color = v => v > 0 ? 'text-green-400' : 'text-red-400';
-            card.querySelector('.val-1h').innerHTML = `<span class="${color(a.chg.h1)}">${(a.chg.h1 || 0).toFixed(2)}%</span>`;
-            
-            const chg24h = a.chg.h24 || 0;
-            card.querySelector('.val-24h').innerHTML = `${chg24h>0?'+':''}${chg24h.toFixed(2)}%`;
-            card.querySelector('.val-24h').className = `val-24h font-bold font-mono text-[10px] ${color(chg24h)}`;
-            card.querySelector('.val-24h-box').innerHTML = `<span class="${color(chg24h)}">${chg24h.toFixed(2)}%</span>`;
-            card.querySelector('.val-7d').innerHTML = `<span class="${color(a.chg.d7)}">${(a.chg.d7 || 0).toFixed(2)}%</span>`;
-            card.querySelector('.val-30d').innerHTML = `<span class="${color(a.chg.d30)}">${(a.chg.d30 || 0).toFixed(2)}%</span>`;
+            },
 
-            // Metrics
-            const rsiEl = card.querySelector('.metric-rsi-weekly');
-            rsiEl.innerText = (a.rsiW || 0).toFixed(0);
-            rsiEl.className = `metric-rsi-weekly font-mono text-[10px] font-bold ${a.rsiW<30?'text-green-400':a.rsiW>70?'text-red-400':'text-white'}`;
-            
-            card.querySelector('.val-annual-vol').innerText = ((a.volAnn || 0) * 100).toFixed(0) + '%';
-            
-            if(f && f.fdv && f.mcap) {
-                const ratio = f.mcap / f.fdv;
-                const fdvEl = card.querySelector('.val-mc-fdv');
-                fdvEl.innerText = ratio.toFixed(2);
-                fdvEl.className = `val-mc-fdv font-mono text-[10px] font-bold ${ratio>0.8?'text-green-400':ratio<0.2?'text-red-400':'text-yellow-400'}`;
-            }
+            // --- ANALYSIS ENGINE ---
+            Analysis: {
+                run: (symbol, w, d, h, fund) => {
+                    const closesW = w.map(k => k.close);
+                    const currentPrice = closesW[closesW.length - 1] || 0;
+                    const rsiW = Quant.rsi(closesW, 14);
+                    const volAnn = Quant.volatility(closesW); 
+                    const sma200W = Quant.sma(closesW, 200);
 
-            card.querySelector('.real-asymmetry-value').innerText = (a.asymmetry || 0).toFixed(1) + 'x';
-            card.querySelector('.statistical-probability-value').innerText = (a.probProfit || 0).toFixed(0) + '%';
-            
-            const rcEl = card.querySelector('.val-risk-class');
-            rcEl.innerText = `Classe ${a.risk.class || 'N/A'}`;
-            rcEl.className = `val-risk-class text-[10px] font-bold ${a.risk.class==='A'?'text-green-500':a.risk.class==='F'?'text-red-500':'text-yellow-500'}`;
+                    const reg = Quant.logRegression(closesW);
+                    const logPrice = Math.log(Math.max(currentPrice, 0.0001));
+                    const logBottom = Math.log(Math.max(reg.bottom, 0.0001));
+                    const logTop = Math.log(Math.max(reg.top, 0.0001));
+                    const bandRange = logTop - logBottom;
+                    const positionInBand = bandRange > 0 ? Math.max(0, Math.min(100, ((logPrice - logBottom) / bandRange) * 100)) : 50;
 
-            // Log Bar
-            const bar = card.querySelector('.historical-indicator');
-            if (bar) {
-                bar.style.left = `${a.positionInBand || 50}%`;
-            }
-            card.querySelector('.historical-position').innerText = (a.positionInBand || 0).toFixed(0);
+                    const upside = Math.max(0, reg.top - currentPrice);
+                    const distLog = Math.max(0, currentPrice - reg.bottom);
+                    const distSMA = sma200W ? Math.max(0, currentPrice - sma200W) : 0;
+                    const volDrop = currentPrice * (volAnn / 2); 
+                    const downsideReal = Math.max(distLog, distSMA, volDrop);
+                    const asymmetry = downsideReal === 0 ? 10 : (upside / downsideReal);
 
-            // Body details
-            card.querySelector('.val-fdv').innerText = f && f.fdv ? (f.fdv > 1e9 ? `$${(f.fdv/1e9).toFixed(1)}B` : '-') : '-';
-            card.querySelector('.val-ath-discount').innerText = f && f.ath_change ? f.ath_change.toFixed(1) + '%' : '-';
-            card.querySelector('.val-liq').innerText = (a.fund.liqRatio || 0).toFixed(3);
-            card.querySelector('.analysis-sma').innerText = a.sma200W ? '$' + a.sma200W.toFixed(2) : '-';
+                    const zScore = (Math.log(Math.max(currentPrice, 0.0001)) - Math.log(Math.max(reg.regressionPrice, 0.0001))) / reg.stdev;
+                    const probProfit = Quant.empiricalProb(closesW, zScore, reg.stdev, reg.params);
 
-            App.Alerts.renderInCard(symbol, card.querySelector('.alert-list'), a.price);
-            
-            // Verificar se o card está expandido e renderizar o gráfico
-            if (!card.querySelector('.card-body').classList.contains('hidden')) {
-                App.UI.renderChart(card);
-            }
-            
-            // Phase border color
-            card.classList.remove('holder-phase-accumulation', 'holder-phase-holding', 'holder-phase-profit');
-            if (a.positionInBand < 20) {
-                card.classList.add('holder-phase-accumulation');
-            } else if (a.positionInBand > 80) {
-                card.classList.add('holder-phase-profit');
-            } else {
-                card.classList.add('holder-phase-holding');
-            }
-        },
-        toggleCard: (el) => {
-            let card = el.closest('.card');
-            let b = card.querySelector('.card-body');
-            if(b.classList.contains('hidden')) {
-                document.querySelectorAll('.card-body').forEach(e => e.classList.add('hidden'));
-                b.classList.remove('hidden');
-                App.UI.renderChart(card);
-            } else {
-                b.classList.add('hidden');
-            }
-        },
-        renderChart: (card) => {
-            const sym = card.dataset.symbol;
-            const d = App.State.data[sym];
-            const container = card.querySelector('.chart-container');
-            
-            if(!d || !container || !d.klines || !d.klines.w || d.klines.w.length === 0) {
-                container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Sem dados de gráfico</div>';
-                return;
-            }
-            
-            // Limpar container
-            container.innerHTML = '';
-            
-            try {
-                const chart = LightweightCharts.createChart(container, {
-                    layout: { 
-                        background: { color: '#000000' }, 
-                        textColor: '#6b7280', 
-                        fontSize: 11 
-                    },
-                    grid: { 
-                        vertLines: { color: '#1f2937' }, 
-                        horzLines: { color: '#1f2937' } 
-                    },
-                    rightPriceScale: { 
-                        borderVisible: false, 
-                        scaleMargins: { top: 0.1, bottom: 0.1 } 
-                    },
-                    timeScale: { 
-                        timeVisible: true, 
-                        secondsVisible: false 
-                    },
-                    width: container.clientWidth, 
-                    height: container.clientHeight
-                });
-                
-                const candleSeries = chart.addCandlestickSeries({ 
-                    upColor: '#10b981', 
-                    downColor: '#ef4444', 
-                    borderVisible: false, 
-                    wickUpColor: '#10b981', 
-                    wickDownColor: '#ef4444' 
-                });
-                
-                const chartData = d.klines.w.map(k => ({ 
-                    time: k.time/1000, 
-                    open: k.open, 
-                    high: k.high, 
-                    low: k.low, 
-                    close: k.close 
-                }));
-                candleSeries.setData(chartData);
-                
-                // Adicionar SMAs se houver dados suficientes
-                if (d.klines.w.length >= 20) {
-                    const sma20 = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1 });
-                    const sma20Data = [];
-                    const closes = d.klines.w.map(k => k.close);
-                    
-                    for(let i = 19; i < closes.length; i++) {
-                        const periodCloses = closes.slice(i-19, i+1);
-                        const smaValue = periodCloses.reduce((sum, val) => sum + val, 0) / 20;
-                        sma20Data.push({ 
-                            time: d.klines.w[i].time/1000, 
-                            value: smaValue 
-                        });
-                    }
-                    sma20.setData(sma20Data);
-                }
-                
-                chart.timeScale().fitContent();
-            } catch (error) {
-                console.error('Erro ao renderizar gráfico:', error);
-                container.innerHTML = '<div class="flex items-center justify-center h-full text-red-500">Erro no gráfico</div>';
-            }
-        }
-    },
+                    const chg1h = h && h.length > 1 ? ((h[h.length-1].close - h[0].open)/h[0].open)*100 : 0;
+                    const chg24h = d && d.length > 1 ? ((d[d.length-1].close - d[d.length-2].close)/d[d.length-2].close)*100 : 0; 
+                    const chg7d = d && d.length > 7 ? ((d[d.length-1].close - d[d.length-8].close)/d[d.length-8].close)*100 : 0;
+                    const chg30d = d && d.length > 30 ? ((d[d.length-1].close - d[d.length-31].close)/d[d.length-31].close)*100 : 0;
 
-    // --- OPPORTUNITIES & ALERTS ---
-    Opportunities: {
-        render: () => {
-            const data = Object.keys(App.State.data)
-                .map(k => ({s: k, ...App.State.data[k]}))
-                .filter(d => d.analysis)
-                .sort((a,b) => (b.analysis.score || 0) - (a.analysis.score || 0));
-            
-            const tbody = document.getElementById('opportunities-body');
-            if(tbody) {
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-600 italic">Nenhum dado disponível</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = data.map((d, i) => {
-                    const a = d.analysis;
-                    const zoneName = a.positionInBand < 20 ? 'Fundo' : a.positionInBand > 80 ? 'Topo' : 'Meio';
-                    return `
-                        <tr class="table-row-hover border-b border-gray-800 cursor-pointer" onclick="App.UI.scrollToCard('${d.s}')">
-                            <td class="p-3 text-center text-gray-500 font-bold">${i+1}</td>
-                            <td class="p-3 sticky left-0 bg-dark-900 font-bold text-white border-r border-gray-800 shadow-md">${d.s.replace('USDT','')}</td>
-                            <td class="p-3 text-center font-bold ${a.score>70?'text-green-400':a.score<40?'text-red-400':'text-blue-400'}">${a.score}</td>
-                            <td class="p-3 text-center text-[10px] text-gray-400">${zoneName} (${a.positionInBand.toFixed(0)}%)</td>
-                            <td class="p-3 text-right font-mono text-white">$${a.price.toFixed(2)}</td>
-                            <td class="p-3 text-center font-mono ${a.asymmetry>3?'text-green-400':'text-yellow-400'}">${a.asymmetry.toFixed(1)}x</td>
-                            <td class="p-3 text-center font-mono text-gray-400">${a.probProfit.toFixed(0)}%</td>
-                            <td class="p-3 text-center font-bold text-xs ${a.risk.class==='A'?'text-green-500':a.risk.class==='F'?'text-red-500':'text-yellow-500'}">${a.risk.class}</td>
-                            <td class="p-3 text-center"><button onclick="event.stopPropagation(); App.Alerts.openForSymbol('${d.s}')" class="text-holder-accumulation hover:text-white p-2 rounded bg-dark-800 border border-gray-700"><i class="fa-solid fa-bell"></i></button></td>
-                        </tr>
-                    `;
-                }).join('');
-            }
-            
-            // Renderizar zonas
-            const renderZone = (id, filterFn) => {
-                const el = document.getElementById(id);
-                if(!el) return;
-                const filtered = data.filter(filterFn);
-                if (filtered.length === 0) {
-                    el.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-600 text-[10px]">Nenhum ativo</td></tr>';
-                    return;
-                }
-                el.innerHTML = filtered.map(d => `
-                    <tr class="border-b border-gray-800/50 hover:bg-white/5 cursor-pointer" onclick="App.UI.scrollToCard('${d.s}')">
-                        <td class="p-2 font-bold text-white">${d.s.replace('USDT','')}</td>
-                        <td class="p-2 text-right text-gray-400 text-[10px]">${d.analysis.positionInBand.toFixed(0)}%</td>
-                        <td class="p-2 text-right font-mono text-xs ${d.analysis.score>70?'text-green-400':'text-blue-400'}">${d.analysis.score}</td>
-                    </tr>
-                `).join('');
-            };
-            
-            renderZone('list-agressive', d => d.analysis.positionInBand <= 30);
-            renderZone('list-fair', d => d.analysis.positionInBand > 30 && d.analysis.positionInBand <= 70);
-            renderZone('list-full', d => d.analysis.positionInBand > 70);
-        }
-    },
+                    const inflation = fund ? ((fund.total_supply - fund.circ_supply) / Math.max(fund.circ_supply, 1)) * 100 : 0;
+                    let rawLiq = fund && fund.mcap > 0 ? (fund.vol24 / fund.mcap) : 0;
+                    const liqRatio = Math.min(rawLiq, 0.3);
 
-        Alerts: {
-        init: () => App.Alerts.renderPanel(),
-        openModal: () => {
-            const modal = document.getElementById('alertsModal');
-            if (modal) modal.classList.remove('hidden');
-            
-            // Popular dropdown de símbolos
-            const select = document.getElementById('alert-symbol');
-            if (select) {
-                select.innerHTML = '<option value="">Selecione um token</option>';
-                App.State.tokens.forEach(token => {
-                    const option = document.createElement('option');
-                    option.value = token.symbol;
-                    option.text = token.symbol.replace('USDT', '') + ` (${token.name})`;
-                    select.appendChild(option);
-                });
-                
-                // Se houver símbolo na URL, selecionar
-                const urlParams = new URLSearchParams(window.location.search);
-                const tokenFromUrl = urlParams.get('token');
-                if (tokenFromUrl) {
-                    select.value = tokenFromUrl + 'USDT';
+                    let riskScore = 0;
+                    const fdvRatio = fund && fund.mcap > 0 ? fund.fdv / fund.mcap : 1;
+                    if(fdvRatio > 5) riskScore += 3;
+                    else if(fdvRatio > 2) riskScore += 1;
+                    if(rawLiq < 0.01) riskScore += 3;
+                    else if(rawLiq < 0.03) riskScore += 1;
+                    if(fund && Math.abs(fund.ath_change) > 90) riskScore += 3;
+                    else if(fund && Math.abs(fund.ath_change) > 75) riskScore += 1;
+
+                    const riskPenalty = Math.min(20, riskScore * 2.5);
+                    const riskClass = riskScore >= 7 ? 'F' : riskScore >= 5 ? 'D' : riskScore >= 3 ? 'C' : riskScore >= 1 ? 'B' : 'A';
+
+                    let score = 0;
+                    let sc_val_ath = Math.min(100, Math.max(0, Math.abs(fund?.ath_change || 0) * 1.2)); 
+                    let sc_val_inf = Math.max(0, 100 - (inflation * 2));
+                    score += 0.40 * (0.6*sc_val_ath + 0.4*sc_val_inf);
+
+                    let sc_cyc_band = 100 - positionInBand; 
+                    let sc_cyc_sma = sma200W ? ((currentPrice < sma200W) ? 100 : Math.max(0, 100 - ((currentPrice/sma200W - 1)*100))) : 50;
+                    score += 0.30 * (0.7*sc_cyc_band + 0.3*sc_cyc_sma);
+
+                    let sc_fund_liq = Math.min(100, liqRatio * 333); 
+                    score += 0.20 * sc_fund_liq;
+
+                    let sc_tec_rsi = Math.max(0, Math.min(100, (70 - rsiW) * 2.5));
+                    score += 0.10 * sc_tec_rsi;
+
+                    score = Math.max(0, Math.min(100, score - riskPenalty));
+
+                    return {
+                        price: currentPrice, 
+                        rsiW, 
+                        volAnn, 
+                        sma200W,
+                        reg, 
+                        positionInBand, 
+                        asymmetry, 
+                        probProfit,
+                        chg: { h1: chg1h, h24: chg24h, d7: chg7d, d30: chg30d },
+                        fund: { inflation, liqRatio, ath_change: fund?.ath_change, fdv: fund?.fdv },
+                        risk: { class: riskClass, penalty: riskPenalty },
+                        score: Math.round(score)
+                    };
                 }
-            }
-            
-            // Focar no campo de preço
-            setTimeout(() => {
-                document.getElementById('alert-price')?.focus();
-            }, 100);
-        },
-        openForSymbol: (s) => {
-            App.Alerts.openModal();
-            const sel = document.getElementById('alert-symbol');
-            if (sel) {
-                // Verificar se o símbolo existe nas opções
-                const optionExists = Array.from(sel.options).some(opt => opt.value === s);
-                if (optionExists) {
-                    sel.value = s;
-                } else {
-                    // Adicionar dinamicamente se não existir
-                    const newOpt = document.createElement('option');
-                    newOpt.value = s;
-                    newOpt.text = s.replace('USDT', '');
-                    sel.appendChild(newOpt);
-                    sel.value = s;
-                }
-            }
-        },
-        closeModal: () => {
-            const modal = document.getElementById('alertsModal');
-            if (modal) modal.classList.add('hidden');
-            
-            // Limpar campos
-            document.getElementById('alert-price').value = '';
-            document.getElementById('alert-notes').value = '';
-        },
-        createAlert: async () => {
-    const sym = document.getElementById('alert-symbol')?.value;
-    const type = document.getElementById('alert-type')?.value;
-    const price = parseFloat(document.getElementById('alert-price')?.value);
-    const notes = document.getElementById('alert-notes')?.value;
-    
-    // Validações
-    if(!sym || sym.trim() === '' || sym === 'Selecione um token') {
-        alert('Selecione um token válido.');
-        document.getElementById('alert-symbol')?.focus();
-        return;
-    }
-    
-    if(!price || isNaN(price) || price <= 0) {
-        alert('Digite um preço alvo válido (maior que 0).');
-        document.getElementById('alert-price')?.focus();
-        return;
-    }
-    
-    // Validar tipo
-    if (type !== 'buy' && type !== 'sell') {
-        alert('Tipo de alerta inválido. Use "buy" ou "sell".');
-        return;
-    }
-    
-    // Verificar se já existe alerta idêntico ativo
-    const existingAlert = App.State.alerts.find(a => 
-        a.symbol === sym && 
-        a.type === type && 
-        Math.abs(a.targetPrice - price) < 0.0001 && 
-        !a.triggered
-    );
-    
-    if (existingAlert) {
-        alert(`Já existe um alerta ${type} para ${sym.replace('USDT', '')} em $${price.toFixed(4)}`);
-        return;
-    }
-    
-    try {
-        console.log('🔄 Criando alerta no Supabase...', { sym, type, price, notes });
-        
-        // Verificar conexão com Supabase
-        if (!supabase) {
-            throw new Error('Supabase não inicializado');
-        }
-        
-        // Preparar dados para inserção
-        const alertData = {
-            symbol: sym.trim(),
-            type: type,
-            target_price: price,
-            notes: (notes || '').trim(),
-            triggered: false,
-            created_at: new Date().toISOString()
-        };
-        
-        // Inserir no Supabase
-        const { data, error } = await supabase
-            .from('alerts')
-            .insert([alertData])
-            .select();
-        
-        if (error) {
-            console.error('❌ Erro Supabase:', error);
-            
-            // Mapear erros comuns do Supabase
-            if (error.code === '23505') {
-                alert('Já existe um alerta igual para este token e preço.');
-            } else if (error.code === '23514') {
-                alert('Tipo de alerta inválido. Use "buy" ou "sell".');
-            } else if (error.code === '42501') {
-                alert('Permissão negada. Verifique as políticas RLS do Supabase.');
-            } else if (error.code === '42P01') {
-                alert('Tabela não encontrada. Certifique-se de criar a tabela "alerts".');
-            } else {
-                alert(`Erro: ${error.message || 'Erro desconhecido'}`);
-            }
-            return;
-        }
-        
-        console.log('✅ Alerta criado no Supabase:', data[0]);
-        
-        // Adicionar ao estado local (a atualização realtime também vai atualizar)
-        const newAlert = {
-            id: data[0].id,
-            symbol: data[0].symbol,
-            type: data[0].type,
-            targetPrice: parseFloat(data[0].target_price),
-            notes: data[0].notes || '',
-            triggered: data[0].triggered || false
-        };
-        
-        App.State.alerts.unshift(newAlert);
-        
-        // Fechar modal
-        App.Alerts.closeModal();
-        
-        // Feedback visual
-        App.Alerts.renderPanel();
-        
-        // Atualizar cards que possuem este símbolo
-        App.UI.updateAllCards();
-        
-        // Feedback de sucesso
-        const symbolName = sym.replace('USDT', '');
-        const message = `✅ Alerta criado para ${symbolName}\n` +
-                       `Tipo: ${type === 'buy' ? 'Comprar abaixo de' : 'Vender acima de'}\n` +
-                       `Preço: $${price.toFixed(4)}\n` +
-                       `Nota: ${notes || '(sem nota)'}`;
-        
-        alert(message);
-        
-    } catch (error) {
-        console.error('❌ Erro completo ao criar alerta:', error);
-        alert(`Erro ao criar alerta: ${error.message}\nVerifique console (F12) para detalhes.`);
-    }
-},
-        openForCard: (btn) => {
-            const card = btn.closest('.card');
-            if (card) {
-                App.Alerts.openForSymbol(card.dataset.symbol);
-            }
-        },
-        remove: async (id) => { 
-            if(!confirm('Remover este alerta?')) return;
-            
-            try {
-                console.log('🔄 Removendo alerta:', id);
-                
-                const { error } = await supabase
-                    .from('alerts')
-                    .delete()
-                    .eq('id', id);
-                
-                if (error) throw error;
-                
-                console.log('🗑️ Alerta removido do Supabase:', id);
-                
-                // Feedback visual
-                const alertDiv = document.querySelector(`button[onclick*="App.Alerts.remove(${id})"]`)?.parentElement;
-                if (alertDiv) {
-                    alertDiv.style.opacity = '0.5';
-                    setTimeout(() => {
-                        alertDiv.style.display = 'none';
-                    }, 300);
-                }
-                
-                // O realtime subscription vai atualizar automaticamente
-                
-            } catch (error) {
-                console.error('❌ Erro ao remover alerta:', error);
-                alert('Erro ao remover alerta.');
-            }
-        },
-        checkAll: async () => {
-    if (!App.State.alerts || App.State.alerts.length === 0) {
-        return;
-    }
-    
-    let triggeredAny = false;
-    const now = new Date();
-    const timestamp = now.toLocaleTimeString();
-    
-    console.log(`🔍 Verificando ${App.State.alerts.length} alertas às ${timestamp}...`);
-    
-    // Filtrar apenas alertas não acionados
-    const activeAlerts = App.State.alerts.filter(a => !a.triggered);
-    
-    if (activeAlerts.length === 0) {
-        console.log('ℹ️ Nenhum alerta ativo para verificar');
-        return;
-    }
-    
-    for (let a of activeAlerts) {
-        try {
-            const d = App.State.data[a.symbol];
-            
-            if (!d || !d.analysis || !d.analysis.price) {
-                console.log(`⚠️ Dados insuficientes para ${a.symbol}, pulando...`);
-                continue;
-            }
-            
-            const currentPrice = d.analysis.price;
-            
-            // Verificar se o preço é válido
-            if (currentPrice <= 0) {
-                console.warn(`⚠️ Preço inválido para ${a.symbol}: $${currentPrice}`);
-                continue;
-            }
-            
-            console.log(`📊 ${a.symbol}: $${currentPrice.toFixed(4)} vs Alvo $${a.targetPrice} (${a.type})`);
-            
-            // Verificar condição com tolerância mínima
-            const tolerance = 0.0001;
-            const shouldTrigger = 
-                (a.type === 'buy' && currentPrice <= (a.targetPrice + tolerance)) || 
-                (a.type === 'sell' && currentPrice >= (a.targetPrice - tolerance));
-            
-            if (shouldTrigger) {
-                console.log(`🚨 ALERTA DISPARADO: ${a.symbol} ${a.type.toUpperCase()} em $${a.targetPrice}`);
-                
-                // Atualizar no Supabase
-                const updatedNotes = `${a.notes || ''} [Disparado em ${now.toLocaleString()}]`.trim();
-                
-                const { error } = await supabase
-                    .from('alerts')
-                    .update({ 
-                        triggered: true,
-                        notes: updatedNotes
-                    })
-                    .eq('id', a.id);
-                
-                if (error) {
-                    console.error(`❌ Erro ao atualizar alerta ${a.id}:`, error);
-                    continue;
-                }
-                
-                // Atualizar localmente
-                a.triggered = true;
-                a.notes = updatedNotes;
-                triggeredAny = true;
-                
-                // Notificação visual (não usar alert() para não bloquear a UI)
-                const notificationMsg = `🔔 ${a.symbol.replace('USDT', '')} atingiu $${a.targetPrice.toFixed(4)}`;
-                console.log(notificationMsg);
-                
-                // Usar notificação mais amigável
-                if (Notification.permission === 'granted') {
-                    new Notification('CryptoPanel Alert', {
-                        body: notificationMsg,
-                        icon: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
+            },
+
+            // --- UI HANDLERS ---
+            UI: {
+                setupMobileMenu: () => {
+                    const btn = document.getElementById('mobile-menu-btn');
+                    const menu = document.getElementById('mobile-controls');
+                    btn.addEventListener('click', () => {
+                        menu.classList.toggle('open');
+                        const icon = btn.querySelector('i');
+                        icon.className = menu.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
                     });
-                } else {
-                    // Fallback: criar elemento de notificação na página
-                    const notificationEl = document.createElement('div');
-                    notificationEl.className = 'fixed top-4 right-4 bg-green-900 text-white p-3 rounded-lg shadow-lg z-[9999]';
-                    notificationEl.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-bell"></i>
-                            <span>${notificationMsg}</span>
-                        </div>
-                    `;
-                    document.body.appendChild(notificationEl);
-                    
-                    setTimeout(() => {
-                        notificationEl.remove();
-                    }, 5000);
-                }
-            }
-        } catch (error) {
-            console.error(`❌ Erro ao verificar alerta ${a.id} (${a.symbol}):`, error);
-        }
-    }
-    
-    if (triggeredAny) {
-        console.log('✅ Alertas atualizados no Supabase');
-        // Atualizar a UI
-        App.Alerts.renderPanel();
-        App.UI.updateAllCards();
-    }
-},
-        renderPanel: () => {
-            const div = document.getElementById('alertsContent');
-            if(!div) return;
-            
-            if(App.State.alerts.length === 0) { 
-                div.innerHTML = `
-                    <div class="text-center p-4">
-                        <i class="fa-solid fa-bell-slash text-gray-500 text-2xl mb-2"></i>
-                        <div class="text-xs text-gray-500">Nenhum alerta configurado</div>
-                        <button onclick="App.Alerts.openModal()" class="mt-2 text-xs text-holder-accumulation hover:underline">
-                            + Criar primeiro alerta
-                        </button>
-                    </div>
-                `; 
-                return; 
-            }
-            
-            // ORDENAÇÃO DE ALERTAS SOLICITADA (Mais pertos no topo)
-            const sortedAlerts = [...App.State.alerts].sort((a, b) => {
-                // 1. Acionados vão para o fundo
-                if (a.triggered !== b.triggered) return a.triggered ? 1 : -1;
-                
-                // 2. Calcular distância percentual
-                const priceA = App.State.data[a.symbol]?.analysis?.price || 0;
-                const priceB = App.State.data[b.symbol]?.analysis?.price || 0;
-                
-                const diffA = priceA > 0 ? Math.abs((priceA - a.targetPrice) / priceA) : 1000;
-                const diffB = priceB > 0 ? Math.abs((priceB - b.targetPrice) / priceB) : 1000;
-                
-                return diffA - diffB; // Menor distância primeiro
-            });
-            
-            div.innerHTML = sortedAlerts.map(a => {
-                const tokenData = App.State.data[a.symbol];
-                const currentPrice = tokenData?.analysis?.price || 0;
-                const priceDiffPercent = currentPrice > 0 ? Math.abs((currentPrice - a.targetPrice) / currentPrice) * 100 : 100;
-                const isAbove = currentPrice > a.targetPrice;
-                
-                // Lógica de Cores Solicitada
-                let colorClass = 'text-gray-400';
-                if (a.triggered) colorClass = 'text-green-500 font-bold';
-                else if (priceDiffPercent <= 15) colorClass = 'text-yellow-500';
-                else colorClass = 'text-red-500';
+                },
+                switchTab: (tabName) => {
+                    App.State.activeTab = tabName;
+                    ['agressive', 'fair', 'full'].forEach(t => {
+                        const btn = document.getElementById(`tab-btn-${t}`);
+                        const card = document.getElementById(`zone-card-${t}`);
+                        if (btn && card) {
+                            btn.className = `flex-1 py-2 text-[10px] font-bold uppercase rounded transition-all ${t === tabName ? 'mobile-tab-active' : 'mobile-tab-inactive'}`;
+                            if (window.innerWidth < 768) {
+                                card.style.display = (t === tabName) ? 'flex' : 'none';
+                            } else {
+                                card.style.display = 'flex';
+                            }
+                        }
+                    });
+                },
+                scrollToCard: (symbol) => {
+                    const card = document.querySelector(`.card[data-symbol="${symbol}"]`);
+                    if(card) {
+                        card.scrollIntoView({behavior:'smooth', block:'center'});
+                        const cardBody = card.querySelector('.card-body');
+                        if(cardBody && cardBody.classList.contains('hidden')) {
+                            App.UI.toggleCard(card.querySelector('.p-4'));
+                        }
+                    }
+                },
+                tooltips: () => {
+                    const ov = document.getElementById('metric-tooltip-overlay');
+                    document.body.addEventListener('click', (e) => { 
+                        let t = e.target.closest('[data-tip]'); 
+                        if(t){ 
+                            let k = t.dataset.tip;
+                            let d = App.Library[k];
+                            if(d) {
+                                let html = `<div class="flex-1">
+                                    <div class="tt-section"><div class="tt-header tt-def"><i class="fa-solid fa-book"></i> Definição</div><div class="tt-text text-white font-bold">${d.t}</div><div class="tt-text mt-1">${d.d}</div></div>`;
+                                if(d.c) html += `<div class="tt-section"><div class="tt-header tt-calc"><i class="fa-solid fa-calculator"></i> Lógica</div><div class="tt-text font-mono text-xs">${d.c}</div></div>`;
+                                if(d.r) html += `<div class="tt-section"><div class="tt-header tt-ref"><i class="fa-solid fa-ruler"></i> Referência</div><div class="tt-text">${d.r}</div></div>`;
+                                if(d.s) html += `<div class="tt-section"><div class="tt-header tt-strat"><i class="fa-solid fa-chess"></i> Estratégia</div><div class="tt-text">${d.s}</div></div>`;
+                                if(d.t) html += `<div class="tt-section"><div class="tt-header tt-trap"><i class="fa-solid fa-triangle-exclamation"></i> Atenção</div><div class="tt-text">${d.t}</div></div>`;
+                                html += `</div><button class="absolute top-2 right-2 p-2 text-gray-500 hover:text-white" onclick="this.parentElement.classList.add('tooltip-hidden');this.parentElement.classList.remove('tooltip-visible')"><i class="fa-solid fa-times"></i></button>`;
+                                ov.innerHTML = html;
+                                ov.classList.remove('tooltip-hidden'); 
+                                ov.classList.add('tooltip-visible');
+                            }
+                            e.stopPropagation(); 
+                        } else if(!e.target.closest('#metric-tooltip-overlay')) {
+                             ov.classList.remove('tooltip-visible'); 
+                             ov.classList.add('tooltip-hidden'); 
+                        }
+                    });
+                },
+                grid: () => {
+                    let g = document.getElementById('cards-grid');
+                    if (!g) return;
+                    g.innerHTML='';
+                    App.State.tokens.forEach(token => {
+                        let tmpl = document.getElementById('card-template').content.cloneNode(true);
+                        let el = tmpl.querySelector('.card');
+                        el.dataset.symbol = token.symbol;
+                        el.querySelector('.symbol-ticker').innerText = token.symbol.replace('USDT','');
+                        el.querySelector('.symbol-name').innerText = token.name;
+                        el.querySelector('.btn-remove').onclick = (e)=>{e.stopPropagation(); App.Token.rem(token.symbol)};
+                        g.appendChild(el);
+                    });
+                    App.UI.switchTab('agressive');
+                    window.addEventListener('resize', () => App.UI.switchTab(App.State.activeTab));
+                },
+                updateAllCards: () => {
+                    App.State.tokens.forEach(token => {
+                        const data = App.State.data[token.symbol];
+                        if(data) App.UI.updateTokenCard(token.symbol, data);
+                    });
+                },
+                updateTokenCard: (symbol, data) => {
+                    const card = document.querySelector(`.card[data-symbol="${symbol}"]`);
+                    if(!card) return;
+                    const a = data.analysis;
+                    const f = data.fundamentals;
+                    if (!a) return;
 
-                return `
-                <div class="flex justify-between items-center p-3 rounded-lg border ${a.triggered?'border-green-500/50 bg-green-900/10':'border-gray-700 bg-dark-800'} mb-2 transition-all hover:border-gray-600">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-bold text-sm text-white">${a.symbol.replace('USDT','')}</div>
-                            <span class="text-xs px-2 py-0.5 rounded ${a.type==='buy'?'bg-green-900/50 text-green-400':'bg-red-900/50 text-red-400'}">${a.type.toUpperCase()}</span>
-                            ${a.triggered ? '<span class="text-xs px-2 py-0.5 rounded bg-green-900 text-green-300">✓ DISPARADO</span>' : ''}
-                        </div>
+                    // --- BADGE DE FONTE (BINANCE/GECKO) ---
+                    const token = App.State.tokens.find(t => t.symbol === symbol);
+                    if (token) {
+                         const sourceBadge = token.source === 'coingecko' 
+                            ? '<span class="text-[9px] bg-blue-900/50 text-blue-400 px-1.5 py-0.5 rounded border border-blue-800 absolute top-2 left-2 font-bold" title="Fonte: CoinGecko">CG</span>'
+                            : '<span class="text-[9px] bg-yellow-900/50 text-yellow-500 px-1.5 py-0.5 rounded border border-yellow-800 absolute top-2 left-2 font-bold" title="Fonte: Binance">BN</span>';
                         
-                        <div class="mt-1">
-                            <div class="text-xs text-gray-400">Alvo: <span class="font-mono text-white">$${a.targetPrice.toFixed(4)}</span></div>
-                            ${currentPrice > 0 ? `
-                                <div class="text-xs text-gray-400">
-                                    Atual: <span class="font-mono text-white">$${currentPrice.toFixed(4)}</span>
-                                    <span class="ml-2 ${colorClass}">${isAbove ? '↑' : '↓'} ${Math.abs(priceDiffPercent).toFixed(2)}%</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                        
-                        ${a.notes ? `<div class="mt-1 text-[10px] text-gray-500">${a.notes}</div>` : ''}
-                    </div>
+                        if (!card.querySelector('.source-badge-indicator')) {
+                            const badgeContainer = document.createElement('div');
+                            badgeContainer.className = 'source-badge-indicator';
+                            badgeContainer.innerHTML = sourceBadge;
+                            card.querySelector('.p-4').appendChild(badgeContainer);
+                        }
+                    }
+
+                    // Header
+                    card.querySelector('.price-display').innerText = '$' + a.price.toFixed(a.price < 1 ? 4 : 2);
+                    if(f && f.mcap) {
+                        const mcapText = f.mcap > 1e9 ? `$${(f.mcap/1e9).toFixed(1)}B` : f.mcap > 1e6 ? `$${(f.mcap/1e6).toFixed(0)}M` : `$${f.mcap.toFixed(0)}`;
+                        card.querySelector('.market-cap-value').innerText = mcapText;
+                    }
                     
-                    <button onclick="App.Alerts.remove(${a.id})" 
-                            class="ml-2 p-2 text-gray-500 hover:text-red-500 hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Remover alerta">
-                        <i class="fa-solid fa-trash text-xs"></i>
-                    </button>
-                </div>
-                `;
-            }).join('');
-        },
-        renderInCard: (s, container, currentPrice) => {
-            if (!container) return;
-            
-            // ORDENAÇÃO DENTRO DO CARD (Mais pertos no topo)
-            const alerts = App.State.alerts
-                .filter(a => a.symbol === s)
-                .sort((a, b) => {
-                     const diffA = currentPrice ? Math.abs((currentPrice - a.targetPrice)/currentPrice) : 1000;
-                     const diffB = currentPrice ? Math.abs((currentPrice - b.targetPrice)/currentPrice) : 1000;
-                     return diffA - diffB;
-                });
-
-            if(alerts.length === 0) { 
-                container.innerHTML = '<div class="text-gray-600 italic text-center py-2 text-[10px]">Nenhum alerta</div>'; 
-                return; 
-            }
-            
-            container.innerHTML = alerts.map(a => {
-                const diffPct = currentPrice ? Math.abs((currentPrice - a.targetPrice)/currentPrice)*100 : 100;
-                let dotColor = 'bg-gray-500';
-                
-                if (a.triggered) dotColor = 'bg-green-500 animate-pulse';
-                else if (diffPct <= 15) dotColor = 'bg-yellow-500';
-                else dotColor = 'bg-red-500';
-
-                return `
-                <div class="flex justify-between items-center text-[10px] p-1.5 rounded border border-gray-800/50 mb-1 hover:bg-dark-800 transition-colors">
-                    <div class="flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                        <span class="${a.type==='buy'?'text-green-400':'text-red-400'} font-bold">${a.type.toUpperCase()}</span>
-                    </div>
-                    <span class="font-mono text-gray-300">$${a.targetPrice.toFixed(4)}</span>
-                    <button onclick="App.Alerts.remove(${a.id})" 
-                            class="text-gray-500 hover:text-red-500 text-xs"
-                            title="Remover">
-                        ×
-                    </button>
-                </div>
-            `}).join('');
-        }
-    },
-
-    // --- TOKEN MANAGEMENT COM SUPABASE ---
-    Token: {
-        add: async () => {
-            const inp = document.getElementById('add-input');
-            let s = inp?.value.trim();
-            if(!s) return;
-            
-            // Normalizar input (Se o usuário digita 'pepe', verifica se 'PEPEUSDT' existe)
-            // Se não existe, assume que 'pepe' é o ID da CoinGecko
-            
-            try {
-                // 1. Tentar validar como Ticker da Binance (Adiciona USDT se faltar)
-                let binanceSymbol = s.toUpperCase();
-                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
-                
-                let isBinance = false;
-                try {
-                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                    if(r.ok) isBinance = true;
-                } catch(e) {}
-
-                let finalSymbol = '';
-                let finalName = '';
-                let finalCoinId = '';
-
-                if(isBinance) {
-                    // Caso Binance
-                    finalSymbol = binanceSymbol;
-                    finalName = binanceSymbol.replace('USDT','');
-                    finalCoinId = finalName.toLowerCase(); 
-                } else {
-                    // 2. Caso CoinGecko (Input é o ID exato, ex: 'bittensor')
-                    const cgId = s.toLowerCase();
-                    const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
+                    // Score & Phase
+                    const sb = card.querySelector('.score-badge');
+                    sb.innerText = a.score || '--';
+                    sb.className = `score-badge w-11 h-11 rounded-xl flex items-center justify-center text-lg font-bold text-black border border-white/20 shadow-lg cursor-help ${a.score>70?'bg-score-high':a.score<40?'bg-score-low':'bg-score-mid'}`;
                     
-                    if(rCg.ok) {
-                        const dCg = await rCg.json();
-                        // Criamos um simbolo fake para manter o padrão visual USDT
-                        finalSymbol = dCg.symbol.toUpperCase() + 'USDT'; 
-                        finalName = dCg.name;
-                        finalCoinId = dCg.id; // IMPORTANTE: O ID que a API usa
+                    const pb = card.querySelector('.phase-badge');
+                    const phaseName = a.positionInBand < 20 ? 'ACUMULAR' : a.positionInBand > 80 ? 'REALIZAR' : 'MANTER';
+                    pb.innerText = phaseName;
+                    pb.className = `phase-badge text-[9px] font-bold uppercase px-2 py-1 rounded bg-dark-800 text-gray-400 flex-1 text-center border border-gray-800 ${phaseName==='ACUMULAR'?'text-green-400 bg-green-900/20':phaseName==='REALIZAR'?'text-red-400 bg-red-900/20':'text-blue-400'}`;
+                    
+                    card.querySelector('.zone-badge').innerText = (a.positionInBand || 0).toFixed(0) + '% Log';
+                    
+                    // Variations
+                    const color = v => v > 0 ? 'text-green-400' : 'text-red-400';
+                    card.querySelector('.val-1h').innerHTML = `<span class="${color(a.chg.h1)}">${(a.chg.h1 || 0).toFixed(2)}%</span>`;
+                    
+                    const chg24h = a.chg.h24 || 0;
+                    card.querySelector('.val-24h').innerHTML = `${chg24h>0?'+':''}${chg24h.toFixed(2)}%`;
+                    card.querySelector('.val-24h').className = `val-24h font-bold font-mono text-[10px] ${color(chg24h)}`;
+                    card.querySelector('.val-24h-box').innerHTML = `<span class="${color(chg24h)}">${chg24h.toFixed(2)}%</span>`;
+                    card.querySelector('.val-7d').innerHTML = `<span class="${color(a.chg.d7)}">${(a.chg.d7 || 0).toFixed(2)}%</span>`;
+                    card.querySelector('.val-30d').innerHTML = `<span class="${color(a.chg.d30)}">${(a.chg.d30 || 0).toFixed(2)}%</span>`;
+
+                    // Metrics
+                    const rsiEl = card.querySelector('.metric-rsi-weekly');
+                    rsiEl.innerText = (a.rsiW || 0).toFixed(0);
+                    rsiEl.className = `metric-rsi-weekly font-mono text-[10px] font-bold ${a.rsiW<30?'text-green-400':a.rsiW>70?'text-red-400':'text-white'}`;
+                    
+                    card.querySelector('.val-annual-vol').innerText = ((a.volAnn || 0) * 100).toFixed(0) + '%';
+                    
+                    if(f && f.fdv && f.mcap) {
+                        const ratio = f.mcap / f.fdv;
+                        const fdvEl = card.querySelector('.val-mc-fdv');
+                        fdvEl.innerText = ratio.toFixed(2);
+                        fdvEl.className = `val-mc-fdv font-mono text-[10px] font-bold ${ratio>0.8?'text-green-400':ratio<0.2?'text-red-400':'text-yellow-400'}`;
+                    }
+
+                    card.querySelector('.real-asymmetry-value').innerText = (a.asymmetry || 0).toFixed(1) + 'x';
+                    card.querySelector('.statistical-probability-value').innerText = (a.probProfit || 0).toFixed(0) + '%';
+                    
+                    const rcEl = card.querySelector('.val-risk-class');
+                    rcEl.innerText = `Classe ${a.risk.class || 'N/A'}`;
+                    rcEl.className = `val-risk-class text-[10px] font-bold ${a.risk.class==='A'?'text-green-500':a.risk.class==='F'?'text-red-500':'text-yellow-500'}`;
+
+                    // Log Bar
+                    const bar = card.querySelector('.historical-indicator');
+                    if (bar) bar.style.left = `${a.positionInBand || 50}%`;
+                    card.querySelector('.historical-position').innerText = (a.positionInBand || 0).toFixed(0);
+
+                    // Body details
+                    card.querySelector('.val-fdv').innerText = f && f.fdv ? (f.fdv > 1e9 ? `$${(f.fdv/1e9).toFixed(1)}B` : '-') : '-';
+                    card.querySelector('.val-ath-discount').innerText = f && f.ath_change ? f.ath_change.toFixed(1) + '%' : '-';
+                    card.querySelector('.val-liq').innerText = (a.fund.liqRatio || 0).toFixed(3);
+                    card.querySelector('.analysis-sma').innerText = a.sma200W ? '$' + a.sma200W.toFixed(2) : '-';
+
+                    App.Alerts.renderInCard(symbol, card.querySelector('.alert-list'), a.price);
+                    if (!card.querySelector('.card-body').classList.contains('hidden')) App.UI.renderChart(card);
+                    
+                    card.classList.remove('holder-phase-accumulation', 'holder-phase-holding', 'holder-phase-profit');
+                    if (a.positionInBand < 20) card.classList.add('holder-phase-accumulation');
+                    else if (a.positionInBand > 80) card.classList.add('holder-phase-profit');
+                    else card.classList.add('holder-phase-holding');
+                },
+                toggleCard: (el) => {
+                    let card = el.closest('.card');
+                    let b = card.querySelector('.card-body');
+                    if(b.classList.contains('hidden')) {
+                        document.querySelectorAll('.card-body').forEach(e => e.classList.add('hidden'));
+                        b.classList.remove('hidden');
+                        App.UI.renderChart(card);
                     } else {
-                        alert(`Não encontrado na Binance como '${binanceSymbol}' nem na CoinGecko com ID '${cgId}'.\n\nPara tokens fora da Binance, use o 'API ID' exato da CoinGecko (ex: 'kaspa', 'bittensor').`);
+                        b.classList.add('hidden');
+                    }
+                },
+                renderChart: (card) => {
+                    const sym = card.dataset.symbol;
+                    const d = App.State.data[sym];
+                    const container = card.querySelector('.chart-container');
+                    
+                    if(!d || !container || !d.klines || !d.klines.w || d.klines.w.length === 0) {
+                        container.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">Sem dados de gráfico</div>';
                         return;
                     }
-                }
-                
-                // Verificar duplicidade localmente antes de chamar o banco
-                if(App.State.tokens.find(t => t.symbol === finalSymbol)) {
-                    alert(`O token ${finalSymbol} já está na lista.`);
-                    return;
-                }
-
-                // Inserir no Supabase
-                const { data, error } = await supabase
-                    .from('tokens')
-                    .insert([
-                        { 
-                            symbol: finalSymbol, 
-                            name: finalName, 
-                            coin_id: finalCoinId
+                    container.innerHTML = '';
+                    try {
+                        const chart = LightweightCharts.createChart(container, {
+                            layout: { background: { color: '#000000' }, textColor: '#6b7280', fontSize: 11 },
+                            grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
+                            rightPriceScale: { borderVisible: false, scaleMargins: { top: 0.1, bottom: 0.1 } },
+                            timeScale: { timeVisible: true, secondsVisible: false },
+                            width: container.clientWidth, height: container.clientHeight
+                        });
+                        const candleSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#ef4444', borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#ef4444' });
+                        const chartData = d.klines.w.map(k => ({ time: k.time/1000, open: k.open, high: k.high, low: k.low, close: k.close }));
+                        candleSeries.setData(chartData);
+                        if (d.klines.w.length >= 20) {
+                            const sma20 = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1 });
+                            const sma20Data = [];
+                            const closes = d.klines.w.map(k => k.close);
+                            for(let i = 19; i < closes.length; i++) {
+                                const periodCloses = closes.slice(i-19, i+1);
+                                const smaValue = periodCloses.reduce((sum, val) => sum + val, 0) / 20;
+                                sma20Data.push({ time: d.klines.w[i].time/1000, value: smaValue });
+                            }
+                            sma20.setData(sma20Data);
                         }
-                    ])
-                    .select();
-                
-                if (error) throw error;
-                
-                console.log('✅ Token adicionado:', data[0]);
-                inp.value = '';
-                
-            } catch (error) {
-                console.error('❌ Erro ao adicionar token:', error);
-                alert('Erro ao adicionar token. Verifique console.');
-            }
-        },
+                        chart.timeScale().fitContent();
+                    } catch (error) {
+                        console.error('Erro gráfico:', error);
+                    }
+                }
+            },
 
-        rem: async (s) => {
-            if(!confirm(`Remover ${s}?`)) return;
-            
-            try {
-                // Remover do Supabase
-                const { error } = await supabase
-                    .from('tokens')
-                    .delete()
-                    .eq('symbol', s);
-                
-                if (error) throw error;
-                
-                console.log('🗑️ Token removido:', s);
-                
-            } catch (error) {
-                console.error('❌ Erro ao remover token:', error);
-                alert('Erro ao remover token.');
-            }
-        },
+            // --- OPPORTUNITIES & ALERTS ---
+            Opportunities: {
+                render: () => {
+                    const data = Object.keys(App.State.data)
+                        .map(k => ({s: k, ...App.State.data[k]}))
+                        .filter(d => d.analysis)
+                        .sort((a,b) => (b.analysis.score || 0) - (a.analysis.score || 0));
+                    
+                    const tbody = document.getElementById('opportunities-body');
+                    if(tbody) {
+                        if (data.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-gray-600 italic">Nenhum dado disponível</td></tr>';
+                            return;
+                        }
+                        tbody.innerHTML = data.map((d, i) => {
+                            const a = d.analysis;
+                            const zoneName = a.positionInBand < 20 ? 'Fundo' : a.positionInBand > 80 ? 'Topo' : 'Meio';
+                            return `
+                                <tr class="table-row-hover border-b border-gray-800 cursor-pointer" onclick="App.UI.scrollToCard('${d.s}')">
+                                    <td class="p-3 text-center text-gray-500 font-bold">${i+1}</td>
+                                    <td class="p-3 sticky left-0 bg-dark-900 font-bold text-white border-r border-gray-800 shadow-md">${d.s.replace('USDT','')}</td>
+                                    <td class="p-3 text-center font-bold ${a.score>70?'text-green-400':a.score<40?'text-red-400':'text-blue-400'}">${a.score}</td>
+                                    <td class="p-3 text-center text-[10px] text-gray-400">${zoneName} (${a.positionInBand.toFixed(0)}%)</td>
+                                    <td class="p-3 text-right font-mono text-white">$${a.price.toFixed(2)}</td>
+                                    <td class="p-3 text-center font-mono ${a.asymmetry>3?'text-green-400':'text-yellow-400'}">${a.asymmetry.toFixed(1)}x</td>
+                                    <td class="p-3 text-center font-mono text-gray-400">${a.probProfit.toFixed(0)}%</td>
+                                    <td class="p-3 text-center font-bold text-xs ${a.risk.class==='A'?'text-green-500':a.risk.class==='F'?'text-red-500':'text-yellow-500'}">${a.risk.class}</td>
+                                    <td class="p-3 text-center"><button onclick="event.stopPropagation(); App.Alerts.openForSymbol('${d.s}')" class="text-holder-accumulation hover:text-white p-2 rounded bg-dark-800 border border-gray-700"><i class="fa-solid fa-bell"></i></button></td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                    const renderZone = (id, filterFn) => {
+                        const el = document.getElementById(id);
+                        if(!el) return;
+                        const filtered = data.filter(filterFn);
+                        if (filtered.length === 0) {
+                            el.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-gray-600 text-[10px]">Nenhum ativo</td></tr>';
+                            return;
+                        }
+                        el.innerHTML = filtered.map(d => `
+                            <tr class="border-b border-gray-800/50 hover:bg-white/5 cursor-pointer" onclick="App.UI.scrollToCard('${d.s}')">
+                                <td class="p-2 font-bold text-white">${d.s.replace('USDT','')}</td>
+                                <td class="p-2 text-right text-gray-400 text-[10px]">${d.analysis.positionInBand.toFixed(0)}%</td>
+                                <td class="p-2 text-right font-mono text-xs ${d.analysis.score>70?'text-green-400':'text-blue-400'}">${d.analysis.score}</td>
+                            </tr>
+                        `).join('');
+                    };
+                    renderZone('list-agressive', d => d.analysis.positionInBand <= 30);
+                    renderZone('list-fair', d => d.analysis.positionInBand > 30 && d.analysis.positionInBand <= 70);
+                    renderZone('list-full', d => d.analysis.positionInBand > 70);
+                }
+            },
 
-        removeSelected: async () => {
-            const selected = Array.from(document.querySelectorAll('#settings-tokens-list input:checked'))
-                .map(cb => cb.value);
-            
-            if(selected.length === 0) return;
-            if(!confirm(`Remover ${selected.length} tokens?`)) return;
-            
-            try {
-                // Remover em lote do Supabase
-                const { error } = await supabase
-                    .from('tokens')
-                    .delete()
-                    .in('symbol', selected);
-                
-                if (error) throw error;
-                
-                console.log('🗑️ Tokens removidos:', selected);
-                App.Settings.closeModal();
-                
-            } catch (error) {
-                console.error('❌ Erro ao remover tokens:', error);
-                alert('Erro ao remover tokens.');
-            }
-        },
-
-        addBatch: async () => {
-            const txt = document.getElementById('batch-tokens');
-            const lines = txt?.value.trim().split('\n').filter(t => t.trim()) || [];
-            
-            if(lines.length === 0) return;
-            
-            let count = 0;
-            // Processamento sequencial simples para garantir validação
-            for(let rawS of lines) {
-                const s = rawS.trim();
-                let binanceSymbol = s.toUpperCase();
-                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
-                
-                let finalSymbol, finalName, finalCoinId;
-                
-                try {
-                    // Check Binance
-                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                    if(r.ok) {
-                        finalSymbol = binanceSymbol;
-                        finalName = binanceSymbol.replace('USDT','');
-                        finalCoinId = finalName.toLowerCase();
-                    } else {
-                        // Check Gecko
-                        const cgId = s.toLowerCase();
-                        const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
-                        if(rCg.ok) {
-                            const dCg = await rCg.json();
-                            finalSymbol = dCg.symbol.toUpperCase() + 'USDT';
-                            finalName = dCg.name;
-                            finalCoinId = dCg.id;
+            Alerts: {
+                init: () => App.Alerts.renderPanel(),
+                openModal: () => {
+                    const modal = document.getElementById('alertsModal');
+                    if (modal) modal.classList.remove('hidden');
+                    const select = document.getElementById('alert-symbol');
+                    if (select) {
+                        select.innerHTML = '<option value="">Selecione um token</option>';
+                        App.State.tokens.forEach(token => {
+                            const option = document.createElement('option');
+                            option.value = token.symbol;
+                            option.text = token.symbol.replace('USDT', '') + ` (${token.name})`;
+                            select.appendChild(option);
+                        });
+                    }
+                    setTimeout(() => document.getElementById('alert-price')?.focus(), 100);
+                },
+                openForSymbol: (s) => {
+                    App.Alerts.openModal();
+                    const sel = document.getElementById('alert-symbol');
+                    if (sel) {
+                        const optionExists = Array.from(sel.options).some(opt => opt.value === s);
+                        if (!optionExists) {
+                            const newOpt = document.createElement('option');
+                            newOpt.value = s;
+                            newOpt.text = s.replace('USDT', '');
+                            sel.appendChild(newOpt);
+                        }
+                        sel.value = s;
+                    }
+                },
+                closeModal: () => {
+                    const modal = document.getElementById('alertsModal');
+                    if (modal) modal.classList.add('hidden');
+                    document.getElementById('alert-price').value = '';
+                    document.getElementById('alert-notes').value = '';
+                },
+                createAlert: async () => {
+                    const sym = document.getElementById('alert-symbol')?.value;
+                    const type = document.getElementById('alert-type')?.value;
+                    const price = parseFloat(document.getElementById('alert-price')?.value);
+                    const notes = document.getElementById('alert-notes')?.value;
+                    if(!sym || !price) { alert('Preencha os campos.'); return; }
+                    
+                    try {
+                        const { data, error } = await supabase.from('alerts').insert([{ symbol: sym, type, target_price: price, notes: notes || '', triggered: false }]).select();
+                        if (error) throw error;
+                        App.State.alerts.unshift({ id: data[0].id, symbol: data[0].symbol, type: data[0].type, targetPrice: parseFloat(data[0].target_price), notes: data[0].notes, triggered: false });
+                        App.Alerts.closeModal();
+                        App.Alerts.renderPanel();
+                        App.UI.updateAllCards();
+                    } catch (error) {
+                        alert('Erro ao criar alerta.');
+                    }
+                },
+                openForCard: (btn) => {
+                    const card = btn.closest('.card');
+                    if (card) App.Alerts.openForSymbol(card.dataset.symbol);
+                },
+                remove: async (id) => { 
+                    if(!confirm('Remover alerta?')) return;
+                    try {
+                        const { error } = await supabase.from('alerts').delete().eq('id', id);
+                        if (error) throw error;
+                    } catch (error) { alert('Erro ao remover.'); }
+                },
+                checkAll: async () => {
+                    if (!App.State.alerts.length) return;
+                    let triggeredAny = false;
+                    for (let a of App.State.alerts.filter(a => !a.triggered)) {
+                        const d = App.State.data[a.symbol];
+                        if (d && d.analysis && d.analysis.price > 0) {
+                            const p = d.analysis.price;
+                            const shouldTrigger = (a.type === 'buy' && p <= a.targetPrice) || (a.type === 'sell' && p >= a.targetPrice);
+                            if (shouldTrigger) {
+                                const { error } = await supabase.from('alerts').update({ triggered: true, notes: `${a.notes} [Disparado]`.trim() }).eq('id', a.id);
+                                if (!error) { a.triggered = true; triggeredAny = true; }
+                            }
                         }
                     }
-
-                    if(finalSymbol) {
-                         // Evitar duplicatas
-                        const { data: exists } = await supabase.from('tokens').select('symbol').eq('symbol', finalSymbol);
-                        if(exists && exists.length === 0) {
-                            await supabase.from('tokens').insert([{ symbol: finalSymbol, name: finalName, coin_id: finalCoinId }]);
-                            count++;
-                        }
-                    }
-                } catch(e) { console.error(e); }
-                
-                // Pequeno delay para evitar rate limit
-                await new Promise(r => setTimeout(r, 300));
-            }
-            
-            alert(`${count} tokens adicionados.`);
-            txt.value = '';
-            App.Settings.closeModal();
-        }
-    },
-
-    // --- SETTINGS ---
-    Settings: {
-        openModal: () => {
-            const modal = document.getElementById('settingsModal');
-            if (modal) modal.classList.remove('hidden');
-            
-            // Popular lista de tokens
-            const l = document.getElementById('settings-tokens-list');
-            if (l) {
-                // Ordenar alfabeticamente na lista de configurações também
-                const sortedTokens = [...App.State.tokens].sort((a,b) => a.symbol.localeCompare(b.symbol));
-                
-                l.innerHTML = sortedTokens.map(t => `
-                    <label class="inline-flex items-center bg-dark-800 px-2 py-1 rounded text-xs border border-gray-700 mr-2 mb-2">
-                        <input type="checkbox" value="${t.symbol}" class="mr-1"> ${t.symbol.replace('USDT','')}
-                    </label>
-                `).join('');
-            }
-        },
-        closeModal: () => {
-            const modal = document.getElementById('settingsModal');
-            if (modal) modal.classList.add('hidden');
-        }
-    },
-
-    Export: {
-        openModal: () => {
-            const modal = document.getElementById('export-modal');
-            if (modal) modal.classList.remove('hidden');
-        },
-        closeModal: () => {
-            const modal = document.getElementById('export-modal');
-            if (modal) modal.classList.add('hidden');
-        },
-        gen: (t) => {
-            if(t === 'xlsx') {
-                const data = Object.keys(App.State.data)
-                    .filter(k => App.State.data[k].analysis)
-                    .map(k => {
-                        const d = App.State.data[k];
-                        return {
-                            Symbol: k.replace('USDT', ''),
-                            Price: d.analysis.price,
-                            Score: d.analysis.score,
-                            Risk: d.analysis.risk.class,
-                            Asymmetry: d.analysis.asymmetry.toFixed(2),
-                            Prob: d.analysis.probProfit.toFixed(0) + '%',
-                            'Zona Log': d.analysis.positionInBand.toFixed(0) + '%',
-                            'Vol Anual': (d.analysis.volAnn * 100).toFixed(0) + '%',
-                            'RSI Weekly': d.analysis.rsiW.toFixed(0)
-                        };
-                    });
-                
-                if (data.length === 0) {
-                    alert('Nenhum dado para exportar.');
-                    return;
+                    if (triggeredAny) { App.Alerts.renderPanel(); App.UI.updateAllCards(); }
+                },
+                renderPanel: () => {
+                    const div = document.getElementById('alertsContent');
+                    if(!div) return;
+                    if(App.State.alerts.length === 0) { div.innerHTML = '<div class="text-center p-4 text-xs text-gray-500">Sem alertas</div>'; return; }
+                    
+                    const sorted = [...App.State.alerts].sort((a, b) => a.triggered === b.triggered ? 0 : a.triggered ? 1 : -1);
+                    div.innerHTML = sorted.map(a => {
+                        const curr = App.State.data[a.symbol]?.analysis?.price || 0;
+                        const diff = curr > 0 ? ((curr - a.targetPrice)/curr)*100 : 0;
+                        return `
+                        <div class="flex justify-between items-center p-3 rounded-lg border ${a.triggered?'border-green-500/50 bg-green-900/10':'border-gray-700 bg-dark-800'} mb-2">
+                            <div>
+                                <div class="font-bold text-sm text-white">${a.symbol.replace('USDT','')} <span class="text-xs font-normal ${a.type==='buy'?'text-green-400':'text-red-400'}">${a.type.toUpperCase()}</span></div>
+                                <div class="text-xs text-gray-400">Alvo: $${a.targetPrice} ${!a.triggered && curr > 0 ? `| Atual: $${curr.toFixed(4)} (${diff.toFixed(1)}%)` : ''}</div>
+                            </div>
+                            <button onclick="App.Alerts.remove(${a.id})" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                        </div>`;
+                    }).join('');
+                },
+                renderInCard: (s, container, currentPrice) => {
+                    if (!container) return;
+                    const alerts = App.State.alerts.filter(a => a.symbol === s);
+                    if(alerts.length === 0) { container.innerHTML = '<div class="text-gray-600 italic text-center py-2 text-[10px]">Nenhum alerta</div>'; return; }
+                    container.innerHTML = alerts.map(a => `
+                        <div class="flex justify-between items-center text-[10px] p-1.5 rounded border border-gray-800/50 mb-1">
+                            <span class="${a.triggered?'text-green-500 font-bold':'text-gray-300'}">${a.type.toUpperCase()} $${a.targetPrice}</span>
+                            <button onclick="App.Alerts.remove(${a.id})">×</button>
+                        </div>
+                    `).join('');
                 }
-                
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, "Holder Data");
-                XLSX.writeFile(wb, "HolderRiskData.xlsx");
-            }
-            App.Export.closeModal();
-        }
-    }
-};
+            },
 
-// Inicializar a aplicação quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', () => {
-    // Verificar se as bibliotecas estão carregadas
-    if (typeof LightweightCharts === 'undefined') {
-        console.error('LightweightCharts não carregado');
-        return;
-    }
-    if (typeof XLSX === 'undefined') {
-        console.error('SheetJS não carregado');
-        return;
-    }
-    
-    App.Core.init().catch(error => {
-        console.error('❌ Erro na inicialização:', error);
-        document.getElementById('last-update').innerText = 'Erro na inicialização';
-    });
-});
+            // --- TOKEN MANAGEMENT ---
+            Token: {
+                add: async () => {
+                    const inp = document.getElementById('add-input');
+                    const useGecko = document.getElementById('source-toggle').checked;
+                    let s = inp?.value.trim();
+                    if(!s) return;
+                    
+                    try {
+                        let finalSymbol = '', finalName = '', finalCoinId = '', finalSource = 'binance';
+
+                        if (useGecko) {
+                            const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${s.toLowerCase()}`);
+                            if(rCg.ok) {
+                                const dCg = await rCg.json();
+                                finalSymbol = dCg.symbol.toUpperCase() + 'USDT';
+                                finalName = dCg.name;
+                                finalCoinId = dCg.id;
+                                finalSource = 'coingecko';
+                            } else {
+                                alert(`ID Gecko '${s}' inválido.`); return;
+                            }
+                        } else {
+                            let bSymbol = s.toUpperCase();
+                            if(!bSymbol.endsWith('USDT')) bSymbol += 'USDT';
+                            const r = await fetch(`${API.BINANCE}/ticker/price?symbol=${bSymbol}`);
+                            if(r.ok) {
+                                finalSymbol = bSymbol;
+                                finalName = bSymbol.replace('USDT','');
+                                finalCoinId = finalName.toLowerCase();
+                            } else {
+                                alert(`'${bSymbol}' não achado na Binance.`); return;
+                            }
+                        }
+                        
+                        if(App.State.tokens.find(t => t.symbol === finalSymbol)) { alert('Já existe.'); return; }
+
+                        const { error } = await supabase.from('tokens').insert([{ symbol: finalSymbol, name: finalName, coin_id: finalCoinId, source: finalSource }]);
+                        if (error) throw error;
+                        inp.value = '';
+                    } catch (error) { alert('Erro ao adicionar.'); }
+                },
+
+                rem: async (s) => {
+                    if(!confirm(`Remover ${s}?`)) return;
+                    try { await supabase.from('tokens').delete().eq('symbol', s); } 
+                    catch (error) { alert('Erro ao remover.'); }
+                },
+
+                removeSelected: async () => {
+                    const selected = Array.from(document.querySelectorAll('#settings-tokens-list input:checked')).map(cb => cb.value);
+                    if(!selected.length || !confirm(`Remover ${selected.length} itens?`)) return;
+                    try { await supabase.from('tokens').delete().in('symbol', selected); App.Settings.closeModal(); }
+                    catch (error) { alert('Erro.'); }
+                },
+
+                addBatch: async () => {
+                    const txt = document.getElementById('batch-tokens');
+                    const lines = txt?.value.trim().split('\n').filter(t => t.trim()) || [];
+                    if(!lines.length) return;
+                    let count = 0;
+                    for(let s of lines) {
+                        let bSymbol = s.toUpperCase().trim();
+                        if(!bSymbol.endsWith('USDT')) bSymbol += 'USDT';
+                        try {
+                            const r = await fetch(`${API.BINANCE}/ticker/price?symbol=${bSymbol}`);
+                            if(r.ok) {
+                                const { data: exists } = await supabase.from('tokens').select('symbol').eq('symbol', bSymbol);
+                                if(!exists.length) {
+                                    await supabase.from('tokens').insert([{ symbol: bSymbol, name: bSymbol.replace('USDT',''), coin_id: bSymbol.replace('USDT','').toLowerCase(), source: 'binance' }]);
+                                    count++;
+                                }
+                            }
+                        } catch(e){}
+                        await new Promise(r => setTimeout(r, 200));
+                    }
+                    alert(`${count} adicionados.`);
+                    txt.value = '';
+                    App.Settings.closeModal();
+                }
+            },
+
+            // --- SETTINGS ---
+            Settings: {
+                openModal: () => {
+                    const modal = document.getElementById('settingsModal');
+                    if (modal) modal.classList.remove('hidden');
+                    const l = document.getElementById('settings-tokens-list');
+                    if (l) {
+                        const sortedTokens = [...App.State.tokens].sort((a,b) => a.symbol.localeCompare(b.symbol));
+                        l.innerHTML = sortedTokens.map(t => `
+                            <label class="inline-flex items-center bg-dark-800 px-2 py-1 rounded text-xs border border-gray-700 mr-2 mb-2">
+                                <input type="checkbox" value="${t.symbol}" class="mr-1"> ${t.symbol.replace('USDT','')} <span class="text-[9px] text-gray-500 ml-1">(${t.source === 'coingecko' ? 'CG' : 'BN'})</span>
+                            </label>
+                        `).join('');
+                    }
+                },
+                closeModal: () => document.getElementById('settingsModal')?.classList.add('hidden')
+            },
+
+            Export: {
+                openModal: () => document.getElementById('export-modal')?.classList.remove('hidden'),
+                closeModal: () => document.getElementById('export-modal')?.classList.add('hidden'),
+                gen: (t) => {
+                    if(t === 'xlsx') {
+                        const data = Object.keys(App.State.data).filter(k => App.State.data[k].analysis).map(k => {
+                            const d = App.State.data[k];
+                            return {
+                                Symbol: k.replace('USDT', ''),
+                                Price: d.analysis.price,
+                                Score: d.analysis.score,
+                                Risk: d.analysis.risk.class,
+                                'Zona Log': d.analysis.positionInBand.toFixed(0) + '%'
+                            };
+                        });
+                        if (!data.length) { alert('Sem dados.'); return; }
+                        const wb = XLSX.utils.book_new();
+                        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Holder Data");
+                        XLSX.writeFile(wb, "HolderRiskData.xlsx");
+                    }
+                    App.Export.closeModal();
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof LightweightCharts === 'undefined' || typeof XLSX === 'undefined') return;
+            App.Core.init();
+        });
     </script>
 </body>
 </html>
