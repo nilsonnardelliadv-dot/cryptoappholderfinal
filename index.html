@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CryptoPanel HOLDER PRO v3.4 - Fixed Sort & MultiSource</title>
+    <title>CryptoPanel HOLDER PRO v3.2 - Risk Integrated</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -154,7 +154,7 @@
                     <i class="fa-solid fa-chart-line text-white text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-white tracking-tight leading-none" data-tip="sys_title">CP<span class="text-holder-accumulation">HOLDER</span> <span class="text-[10px] text-gray-500 border border-gray-700 rounded px-1 align-middle ml-1">v3.4 PRO</span></h1>
+                    <h1 class="font-bold text-lg text-white tracking-tight leading-none" data-tip="sys_title">CRYPTO<span class="text-holder-accumulation">HOLDER</span> <span class="text-[10px] text-gray-500 border border-gray-700 rounded px-1 align-middle ml-1">NO RISKS</span></h1>
                     <div class="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
                         <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                         <span id="last-update" data-tip="sys_sync">Syncing...</span>
@@ -305,7 +305,7 @@
         <div class="flex flex-col sm:flex-row gap-4 items-center justify-between mt-2">
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <div class="relative group w-full sm:w-72">
-                    <input type="text" id="add-input" placeholder="TICKER BINANCE ou ID GECKO (Ex: kaspa)" class="w-full bg-dark-900 border border-gray-700 rounded-lg pl-4 pr-10 py-3 text-sm focus:border-holder-accumulation outline-none uppercase shadow-inner transition-all font-mono">
+                    <input type="text" id="add-input" placeholder="Adicionar TICKER (Ex: LINK)..." class="w-full bg-dark-900 border border-gray-700 rounded-lg pl-4 pr-10 py-3 text-sm focus:border-holder-accumulation outline-none uppercase shadow-inner transition-all font-mono">
                     <button onclick="App.Token.add()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-dark-800 text-holder-accumulation hover:text-white hover:bg-green-600 p-1.5 rounded-md transition-all" data-tip="btn_add_token"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
@@ -364,8 +364,7 @@
                 
                 <div>
                     <div class="text-xs font-bold text-gray-500 uppercase mb-2">Adicionar em Lote</div>
-                    <div class="text-[10px] text-gray-500 mb-1">Use 'TICKER' (Binance) ou 'ID' (CoinGecko)</div>
-                    <textarea id="batch-tokens" class="w-full bg-dark-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono" rows="3" placeholder="BTC&#10;ETH&#10;kaspa&#10;pepe"></textarea>
+                    <textarea id="batch-tokens" class="w-full bg-dark-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-xs font-mono" rows="3" placeholder="BTC&#10;ETH&#10;SOL"></textarea>
                 </div>
             </div>
             <div class="p-4 border-t border-gray-800 flex gap-3">
@@ -603,14 +602,14 @@ const App = {
     // --- LIBRARY (Tooltips) --- (MANTENHA IGUAL)
     Library: {
         // Sistema
-        'sys_logo': { t:"HOLDER PRO", d:"Algoritmo de análise quantitativa de risco e ciclo.", r:"Versão 3.4 MultiSource." },
+        'sys_logo': { t:"HOLDER PRO", d:"Algoritmo de análise quantitativa de risco e ciclo.", r:"Versão 3.2 Risk Integrated." },
         'sys_title': { t:"PAINEL DE CONTROLE", d:"Visão geral do mercado com foco em longo prazo.", s:"Use para monitorar saúde da carteira." },
         'sys_sync': { t:"STATUS DE SINCRONIZAÇÃO", d:"Indica atividade da API em tempo real.", c:"Atualiza a cada 720s." },
         'sys_auto': { t:"AUTO REFRESH", d:"Contador regressivo para nova análise.", t:"Não feche a aba durante o sync." },
         'btn_export': { t:"EXPORTAR DADOS", d:"Gera planilha Excel (.xlsx) com todos os indicadores calculados.", s:"Útil para backup ou análise offline." },
         'btn_refresh': { t:"ATUALIZAR AGORA", d:"Força o recálculo de todos os ativos.", s:"Use após adicionar novos tokens." },
         'btn_config': { t:"CONFIGURAÇÕES", d:"Gerencie sua lista de ativos e preferências.", s:"Adicione tokens em lote." },
-        'btn_add_token': { t:"ADICIONAR TOKEN", d:"Insere um novo par USDT ou ID Gecko.", t:"Aceita Binance ou CoinGecko." },
+        'btn_add_token': { t:"ADICIONAR TOKEN", d:"Insere um novo par USDT para monitoramento.", t:"Deve existir na Binance." },
         'btn_add_alert': { t:"CRIAR ALERTA", d:"Define um preço alvo para notificação.", s:"Use níveis de suporte/resistência." },
 
         // Tabela Principal
@@ -633,7 +632,7 @@ const App = {
         'panel_alerts': { t:"MONITORAMENTO", d:"Lista de preços-alvo vigentes.", s:"Mantenha limpo, remova alertas já atingidos." },
 
         // Card Metrics
-        'price_curr': { t:"PREÇO ATUAL", d:"Último preço negociado na Binance/Gecko (USD)." },
+        'price_curr': { t:"PREÇO ATUAL", d:"Último preço negociado na Binance (USDT)." },
         'chg_1h': { t:"VARIAÇÃO 1H", d:"Mudança percentual na última hora.", s:"Mede momentum imediato." },
         'chg_24h': { t:"VARIAÇÃO 24H", d:"Mudança percentual no último dia.", s:"Principal métrica de volatilidade diária." },
         'chg_7d': { t:"VARIAÇÃO 7D", d:"Mudança percentual na semana.", s:"Identifica tendência de curto prazo." },
@@ -657,7 +656,7 @@ const App = {
     // --- CORE FUNCTIONALITY COM SUPABASE ---
     Core: {
         init: async () => {
-    console.log('🚀 Inicializando CryptoPanel com Supabase e MultiSource...');
+    console.log('🚀 Inicializando CryptoPanel com Supabase...');
     
     try {
         // Verificar conexão com Supabase
@@ -730,14 +729,12 @@ const App = {
             try {
                 const { data, error } = await supabase
                     .from('tokens')
-                    .select('*');
+                    .select('*')
+                    .order('created_at', { ascending: true });
                 
                 if (error) throw error;
                 
-                // ORDENAÇÃO ALFABÉTICA DOS CARDS SOLICITADA
-                const sortedData = data.sort((a, b) => a.symbol.localeCompare(b.symbol));
-
-                App.State.tokens = sortedData.map(t => ({
+                App.State.tokens = data.map(t => ({
                     symbol: t.symbol,
                     name: t.name || t.symbol.replace('USDT', ''),
                     coinId: t.coin_id || t.symbol.replace('USDT', '').toLowerCase()
@@ -749,7 +746,8 @@ const App = {
                 // Fallback básico
                 App.State.tokens = [
                     {symbol: 'BTCUSDT', name: 'Bitcoin', coinId: 'bitcoin'},
-                    {symbol: 'ETHUSDT', name: 'Ethereum', coinId: 'ethereum'}
+                    {symbol: 'ETHUSDT', name: 'Ethereum', coinId: 'ethereum'},
+                    {symbol: 'SOLUSDT', name: 'Solana', coinId: 'solana'}
                 ];
             }
         },
@@ -768,7 +766,8 @@ const App = {
         
         const { data, error } = await supabase
             .from('alerts')
-            .select('*');
+            .select('*')
+            .order('created_at', { ascending: false });
         
         if (error) {
             console.error('❌ Erro ao buscar alertas:', error);
@@ -785,6 +784,8 @@ const App = {
         }));
         
         console.log(`✅ ${App.State.alerts.length} alertas carregados do Supabase`);
+        
+        // NÃO chamar checkAll aqui - será chamado após os dados serem carregados
         
     } catch (error) {
         console.error('❌ Erro ao carregar alertas:', error);
@@ -831,7 +832,7 @@ const App = {
     App.State.data = {};
     
     // Usar Promise.all para buscar dados em paralelo com limite de concorrência
-    const batchSize = 3; 
+    const batchSize = 3; // Processar 3 tokens por vez para não sobrecarregar
     for (let i = 0; i < App.State.tokens.length; i += batchSize) {
         const batch = App.State.tokens.slice(i, i + batchSize);
         
@@ -840,9 +841,9 @@ const App = {
                 console.log(`📊 Buscando dados para ${token.symbol}...`);
                 
                 const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
-                    App.Core.fetchKlines(token, '1h', 24),
-                    App.Core.fetchKlines(token, '1d', 35),
-                    App.Core.fetchKlines(token, '1w', 250),
+                    App.Core.fetchKlines(token.symbol, '1h', 24),
+                    App.Core.fetchKlines(token.symbol, '1d', 35),
+                    App.Core.fetchKlines(token.symbol, '1w', 250),
                     App.Core.fetchFundamentals(token.coinId)
                 ]);
 
@@ -881,72 +882,26 @@ const App = {
     console.log(`✅ Dados atualizados para ${Object.keys(App.State.data).length} tokens`);
 },
 
-        // CORRIGIDO: Detecção robusta Binance vs Gecko
-        fetchKlines: async (token, interval, limit) => {
-            let useBinance = false;
-            
-            // Verificação simples: se o símbolo termina em USDT e NÃO temos um coinId forçado diferente
-            // OU se sabemos explicitamente que é Binance.
-            // A melhor forma agora é tentar Binance, se falhar, tentar Gecko.
-            
+        fetchKlines: async (symbol, interval, limit) => {
             try {
-                // Tenta Binance primeiro se parecer um par Binance
-                if (token.symbol.endsWith('USDT')) {
-                    const response = await fetch(`${API.BINANCE}/klines?symbol=${token.symbol}&interval=${interval}&limit=${limit}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        return data.map(k => ({ 
-                            time: k[0], 
-                            open: parseFloat(k[1]), 
-                            high: parseFloat(k[2]), 
-                            low: parseFloat(k[3]), 
-                            close: parseFloat(k[4]), 
-                            volume: parseFloat(k[5]) 
-                        }));
-                    }
-                }
-                
-                // Se falhar ou não for Binance, tenta CoinGecko pelo ID
-                if (token.coinId) {
-                    const daysMap = { '1h': '1', '1d': '30', '1w': 'max' };
-                    const days = daysMap[interval] || 'max';
-                    
-                    const response = await fetch(`${API.COINGECKO}/coins/${token.coinId}/market_chart?vs_currency=usd&days=${days}`);
-                    if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                    const data = await response.json();
-                    
-                    // CoinGecko Market Chart retorna apenas Preços. Criamos velas fictícias (Open=Close)
-                    let candles = data.prices.map(p => ({
-                        time: p[0],
-                        open: p[1],
-                        high: p[1],
-                        low: p[1],
-                        close: p[1],
-                        volume: 0 
-                    }));
-
-                    // Amostragem para reduzir carga se for 'max'
-                    if (interval === '1w' && candles.length > 250) {
-                         // Tentar pegar 1 ponto por semana aproximadamente
-                         const filtered = [];
-                         // Dados diários/horários são muitos. 
-                         // Para semanal, pegamos o último ponto de cada 7 dias aprox? 
-                         // Simplificação: Pegar os últimos 'limit' pontos
-                         return candles.slice(-limit);
-                    }
-                    
-                    return candles.slice(-limit);
-                }
-                return [];
-
+                const response = await fetch(`${API.BINANCE}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return data.map(k => ({ 
+                    time: k[0], 
+                    open: parseFloat(k[1]), 
+                    high: parseFloat(k[2]), 
+                    low: parseFloat(k[3]), 
+                    close: parseFloat(k[4]), 
+                    volume: parseFloat(k[5]) 
+                }));
             } catch (error) {
-                console.error(`❌ Erro klines (${token.symbol}):`, error.message);
+                console.error(`❌ Erro ao buscar klines para ${symbol}:`, error);
                 return [];
             }
         },
 
         fetchFundamentals: async (coinId) => {
-            if(!coinId) return null;
             try {
                 const response = await fetch(`${API.COINGECKO}/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1117,8 +1072,10 @@ const App = {
             if (!g) return;
             
             g.innerHTML='';
-            // App.State.tokens já está ordenado alfabeticamente no loadTokens
-            App.State.tokens.forEach(token => {
+            
+            const sortedTokens = [...App.State.tokens].sort((a, b) => a.symbol.localeCompare(b.symbol));
+            
+            sortedTokens.forEach(token => {
                 let tmpl = document.getElementById('card-template').content.cloneNode(true);
                 let el = tmpl.querySelector('.card');
                 el.dataset.symbol = token.symbol;
@@ -1211,7 +1168,7 @@ const App = {
             card.querySelector('.val-liq').innerText = (a.fund.liqRatio || 0).toFixed(3);
             card.querySelector('.analysis-sma').innerText = a.sma200W ? '$' + a.sma200W.toFixed(2) : '-';
 
-            App.Alerts.renderInCard(symbol, card.querySelector('.alert-list'), a.price);
+            App.Alerts.renderInCard(symbol, card.querySelector('.alert-list'));
             
             // Verificar se o card está expandido e renderizar o gráfico
             if (!card.querySelector('.card-body').classList.contains('hidden')) {
@@ -1709,35 +1666,38 @@ const App = {
                 return; 
             }
             
-            // ORDENAÇÃO DE ALERTAS SOLICITADA (Mais pertos no topo)
-            const sortedAlerts = [...App.State.alerts].sort((a, b) => {
-                // 1. Acionados vão para o fundo
-                if (a.triggered !== b.triggered) return a.triggered ? 1 : -1;
-                
-                // 2. Calcular distância percentual
-                const priceA = App.State.data[a.symbol]?.analysis?.price || 0;
-                const priceB = App.State.data[b.symbol]?.analysis?.price || 0;
-                
-                const diffA = priceA > 0 ? Math.abs((priceA - a.targetPrice) / priceA) : 1000;
-                const diffB = priceB > 0 ? Math.abs((priceB - b.targetPrice) / priceB) : 1000;
-                
-                return diffA - diffB; // Menor distância primeiro
-            });
+            // Calcular proximidade e ordenar
+            const sortedAlerts = [...App.State.alerts]
+                .map(a => {
+                    const tokenData = App.State.data[a.symbol];
+                    const currentPrice = tokenData?.analysis?.price || 0;
+                    let proximity = 1000; // Valor alto para alertas sem dados
+                    if (currentPrice > 0) {
+                        proximity = Math.abs((currentPrice - a.targetPrice) / a.targetPrice) * 100;
+                    }
+                    if (a.triggered) {
+                        proximity = -1; // Coloca os acionados no topo
+                    }
+                    return { ...a, proximity };
+                })
+                .sort((a, b) => a.proximity - b.proximity);
             
             div.innerHTML = sortedAlerts.map(a => {
                 const tokenData = App.State.data[a.symbol];
                 const currentPrice = tokenData?.analysis?.price || 0;
-                const priceDiffPercent = currentPrice > 0 ? Math.abs((currentPrice - a.targetPrice) / currentPrice) * 100 : 100;
                 const isAbove = currentPrice > a.targetPrice;
                 
-                // Lógica de Cores Solicitada
-                let colorClass = 'text-gray-400';
-                if (a.triggered) colorClass = 'text-green-500 font-bold';
-                else if (priceDiffPercent <= 15) colorClass = 'text-yellow-500';
-                else colorClass = 'text-red-500';
+                let borderColor = 'border-gray-700 bg-dark-800'; // Vermelho (padrão)
+                if (a.triggered) {
+                    borderColor = 'border-green-500/50 bg-green-900/10'; // Verde
+                } else if (a.proximity <= 15) {
+                    borderColor = 'border-yellow-500/50 bg-yellow-900/10'; // Amarelo
+                } else {
+                    borderColor = 'border-red-500/50 bg-red-900/10'; // Vermelho
+                }
 
                 return `
-                <div class="flex justify-between items-center p-3 rounded-lg border ${a.triggered?'border-green-500/50 bg-green-900/10':'border-gray-700 bg-dark-800'} mb-2 transition-all hover:border-gray-600">
+                <div class="flex justify-between items-center p-3 rounded-lg border ${borderColor} mb-2 transition-all hover:border-gray-600">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <div class="font-bold text-sm text-white">${a.symbol.replace('USDT','')}</div>
@@ -1747,10 +1707,12 @@ const App = {
                         
                         <div class="mt-1">
                             <div class="text-xs text-gray-400">Alvo: <span class="font-mono text-white">$${a.targetPrice.toFixed(4)}</span></div>
-                            ${currentPrice > 0 ? `
+                            ${currentPrice > 0 && !a.triggered ? `
                                 <div class="text-xs text-gray-400">
-                                    Atual: <span class="font-mono text-white">$${currentPrice.toFixed(4)}</span>
-                                    <span class="ml-2 ${colorClass}">${isAbove ? '↑' : '↓'} ${Math.abs(priceDiffPercent).toFixed(2)}%</span>
+                                    Atual: <span class="font-mono ${isAbove ? 'text-green-400' : 'text-red-400'}">$${currentPrice.toFixed(4)}</span>
+                                    <span class="ml-2 font-bold ${a.proximity <= 15 ? 'text-yellow-400' : 'text-red-400'}">
+                                        ${isAbove ? '↑' : '↓'} ${Math.abs(a.proximity).toFixed(2)}%
+                                    </span>
                                 </div>
                             ` : ''}
                         </div>
@@ -1767,35 +1729,19 @@ const App = {
                 `;
             }).join('');
         },
-        renderInCard: (s, container, currentPrice) => {
+        renderInCard: (s, container) => {
             if (!container) return;
             
-            // ORDENAÇÃO DENTRO DO CARD (Mais pertos no topo)
-            const alerts = App.State.alerts
-                .filter(a => a.symbol === s)
-                .sort((a, b) => {
-                     const diffA = currentPrice ? Math.abs((currentPrice - a.targetPrice)/currentPrice) : 1000;
-                     const diffB = currentPrice ? Math.abs((currentPrice - b.targetPrice)/currentPrice) : 1000;
-                     return diffA - diffB;
-                });
-
+            const alerts = App.State.alerts.filter(a => a.symbol === s && !a.triggered);
             if(alerts.length === 0) { 
-                container.innerHTML = '<div class="text-gray-600 italic text-center py-2 text-[10px]">Nenhum alerta</div>'; 
+                container.innerHTML = '<div class="text-gray-600 italic text-center py-2 text-[10px]">Nenhum alerta ativo</div>'; 
                 return; 
             }
             
-            container.innerHTML = alerts.map(a => {
-                const diffPct = currentPrice ? Math.abs((currentPrice - a.targetPrice)/currentPrice)*100 : 100;
-                let dotColor = 'bg-gray-500';
-                
-                if (a.triggered) dotColor = 'bg-green-500 animate-pulse';
-                else if (diffPct <= 15) dotColor = 'bg-yellow-500';
-                else dotColor = 'bg-red-500';
-
-                return `
+            container.innerHTML = alerts.map(a => `
                 <div class="flex justify-between items-center text-[10px] p-1.5 rounded border border-gray-800/50 mb-1 hover:bg-dark-800 transition-colors">
                     <div class="flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                        <span class="w-2 h-2 rounded-full ${a.type==='buy'?'bg-green-500':'bg-red-500'}"></span>
                         <span class="${a.type==='buy'?'text-green-400':'text-red-400'} font-bold">${a.type.toUpperCase()}</span>
                     </div>
                     <span class="font-mono text-gray-300">$${a.targetPrice.toFixed(4)}</span>
@@ -1805,7 +1751,7 @@ const App = {
                         ×
                     </button>
                 </div>
-            `}).join('');
+            `).join('');
         }
     },
 
@@ -1813,63 +1759,34 @@ const App = {
     Token: {
         add: async () => {
             const inp = document.getElementById('add-input');
-            let s = inp?.value.trim();
+            let s = inp?.value.trim().toUpperCase();
             if(!s) return;
+            if(!s.endsWith('USDT')) s += 'USDT';
             
-            // Normalizar input (Se o usuário digita 'pepe', verifica se 'PEPEUSDT' existe)
-            // Se não existe, assume que 'pepe' é o ID da CoinGecko
+            // Verificar se já existe
+            if(App.State.tokens.find(t=>t.symbol===s)) {
+                alert('Token já existe.');
+                return;
+            }
             
             try {
-                // 1. Tentar validar como Ticker da Binance (Adiciona USDT se faltar)
-                let binanceSymbol = s.toUpperCase();
-                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
-                
-                let isBinance = false;
-                try {
-                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                    if(r.ok) isBinance = true;
-                } catch(e) {}
-
-                let finalSymbol = '';
-                let finalName = '';
-                let finalCoinId = '';
-
-                if(isBinance) {
-                    // Caso Binance
-                    finalSymbol = binanceSymbol;
-                    finalName = binanceSymbol.replace('USDT','');
-                    finalCoinId = finalName.toLowerCase(); 
-                } else {
-                    // 2. Caso CoinGecko (Input é o ID exato, ex: 'bittensor')
-                    const cgId = s.toLowerCase();
-                    const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
-                    
-                    if(rCg.ok) {
-                        const dCg = await rCg.json();
-                        // Criamos um simbolo fake para manter o padrão visual USDT
-                        finalSymbol = dCg.symbol.toUpperCase() + 'USDT'; 
-                        finalName = dCg.name;
-                        finalCoinId = dCg.id; // IMPORTANTE: O ID que a API usa
-                    } else {
-                        alert(`Não encontrado na Binance como '${binanceSymbol}' nem na CoinGecko com ID '${cgId}'.\n\nPara tokens fora da Binance, use o 'API ID' exato da CoinGecko (ex: 'kaspa', 'bittensor').`);
-                        return;
-                    }
-                }
-                
-                // Verificar duplicidade localmente antes de chamar o banco
-                if(App.State.tokens.find(t => t.symbol === finalSymbol)) {
-                    alert(`O token ${finalSymbol} já está na lista.`);
+                // Verificar na Binance
+                const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${s}`);
+                if(r.status !== 200) {
+                    alert('Token não encontrado na Binance.');
                     return;
                 }
-
+                
+                const n = s.replace('USDT','');
+                
                 // Inserir no Supabase
                 const { data, error } = await supabase
                     .from('tokens')
                     .insert([
                         { 
-                            symbol: finalSymbol, 
-                            name: finalName, 
-                            coin_id: finalCoinId
+                            symbol: s, 
+                            name: n, 
+                            coin_id: n.toLowerCase()
                         }
                     ])
                     .select();
@@ -1878,6 +1795,8 @@ const App = {
                 
                 console.log('✅ Token adicionado:', data[0]);
                 inp.value = '';
+                
+                // O realtime vai atualizar automaticamente
                 
             } catch (error) {
                 console.error('❌ Erro ao adicionar token:', error);
@@ -1898,6 +1817,8 @@ const App = {
                 if (error) throw error;
                 
                 console.log('🗑️ Token removido:', s);
+                
+                // O realtime vai atualizar automaticamente
                 
             } catch (error) {
                 console.error('❌ Erro ao remover token:', error);
@@ -1924,6 +1845,8 @@ const App = {
                 console.log('🗑️ Tokens removidos:', selected);
                 App.Settings.closeModal();
                 
+                // O realtime vai atualizar automaticamente
+                
             } catch (error) {
                 console.error('❌ Erro ao remover tokens:', error);
                 alert('Erro ao remover tokens.');
@@ -1932,55 +1855,50 @@ const App = {
 
         addBatch: async () => {
             const txt = document.getElementById('batch-tokens');
-            const lines = txt?.value.trim().split('\n').filter(t => t.trim()) || [];
+            const lines = txt?.value.trim().toUpperCase().split('\n').filter(t => t.trim()) || [];
             
             if(lines.length === 0) return;
             
-            let count = 0;
-            // Processamento sequencial simples para garantir validação
-            for(let rawS of lines) {
-                const s = rawS.trim();
-                let binanceSymbol = s.toUpperCase();
-                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
+            const tokensToAdd = [];
+            
+            for(let t of lines) {
+                let s = t.trim();
+                if(!s.endsWith('USDT')) s += 'USDT';
                 
-                let finalSymbol, finalName, finalCoinId;
-                
-                try {
-                    // Check Binance
-                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                    if(r.ok) {
-                        finalSymbol = binanceSymbol;
-                        finalName = binanceSymbol.replace('USDT','');
-                        finalCoinId = finalName.toLowerCase();
-                    } else {
-                        // Check Gecko
-                        const cgId = s.toLowerCase();
-                        const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
-                        if(rCg.ok) {
-                            const dCg = await rCg.json();
-                            finalSymbol = dCg.symbol.toUpperCase() + 'USDT';
-                            finalName = dCg.name;
-                            finalCoinId = dCg.id;
-                        }
-                    }
-
-                    if(finalSymbol) {
-                         // Evitar duplicatas
-                        const { data: exists } = await supabase.from('tokens').select('symbol').eq('symbol', finalSymbol);
-                        if(exists && exists.length === 0) {
-                            await supabase.from('tokens').insert([{ symbol: finalSymbol, name: finalName, coin_id: finalCoinId }]);
-                            count++;
-                        }
-                    }
-                } catch(e) { console.error(e); }
-                
-                // Pequeno delay para evitar rate limit
-                await new Promise(r => setTimeout(r, 300));
+                // Evitar duplicatas
+                if(!App.State.tokens.find(e => e.symbol === s)) {
+                    tokensToAdd.push({
+                        symbol: s,
+                        name: s.replace('USDT',''),
+                        coin_id: s.replace('USDT','').toLowerCase()
+                    });
+                }
             }
             
-            alert(`${count} tokens adicionados.`);
-            txt.value = '';
-            App.Settings.closeModal();
+            if(tokensToAdd.length === 0) {
+                alert('Todos os tokens já existem.');
+                return;
+            }
+            
+            try {
+                // Inserir em lote no Supabase
+                const { data, error } = await supabase
+                    .from('tokens')
+                    .insert(tokensToAdd)
+                    .select();
+                
+                if (error) throw error;
+                
+                console.log(`✅ ${tokensToAdd.length} tokens adicionados em lote`);
+                txt.value = '';
+                App.Settings.closeModal();
+                
+                // O realtime vai atualizar automaticamente
+                
+            } catch (error) {
+                console.error('❌ Erro ao adicionar tokens em lote:', error);
+                alert('Erro ao adicionar tokens. Verifique console.');
+            }
         }
     },
 
@@ -1993,10 +1911,7 @@ const App = {
             // Popular lista de tokens
             const l = document.getElementById('settings-tokens-list');
             if (l) {
-                // Ordenar alfabeticamente na lista de configurações também
-                const sortedTokens = [...App.State.tokens].sort((a,b) => a.symbol.localeCompare(b.symbol));
-                
-                l.innerHTML = sortedTokens.map(t => `
+                l.innerHTML = App.State.tokens.map(t => `
                     <label class="inline-flex items-center bg-dark-800 px-2 py-1 rounded text-xs border border-gray-700 mr-2 mb-2">
                         <input type="checkbox" value="${t.symbol}" class="mr-1"> ${t.symbol.replace('USDT','')}
                     </label>
