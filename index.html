@@ -143,31 +143,6 @@
         
         /* Loading States */
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* Provider Badges */
-        .provider-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 8px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 25;
-            backdrop-filter: blur(4px);
-        }
-        .provider-badge.binance {
-            background: rgba(240, 185, 11, 0.15);
-            color: #f0b90b;
-            border: 1px solid rgba(240, 185, 11, 0.3);
-        }
-        .provider-badge.gecko {
-            background: rgba(86, 202, 159, 0.15);
-            color: #56ca9f;
-            border: 1px solid rgba(86, 202, 159, 0.3);
-        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
@@ -516,11 +491,6 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const API = { BINANCE: "https://api.binance.com/api/v3", COINGECKO: "https://api.coingecko.com/api/v3" };
 const QUANT_CONFIG = { rsiPeriod: 14, volatilityWindow: 52, regressionLookback: 156 };
 
-// Configuração global para suporte a tokens CoinGecko
-const Settings = {
-    useCoinGeckoTokens: true // Ativa suporte oficial a tokens CoinGecko
-};
-
 // --- MATH & STATISTICS ENGINE ---
 const Quant = {
     mean: (arr) => arr.reduce((a, b) => a + b, 0) / arr.length,
@@ -770,17 +740,16 @@ const App = {
                 App.State.tokens = sortedData.map(t => ({
                     symbol: t.symbol,
                     name: t.name || t.symbol.replace('USDT', ''),
-                    coinId: t.coin_id || t.symbol.replace('USDT', '').toLowerCase(),
-                    provider: t.provider || 'binance' // Default para binance se não existir
+                    coinId: t.coin_id || t.symbol.replace('USDT', '').toLowerCase()
                 }));
                 
-                console.log(`📊 ${App.State.tokens.length} tokens carregados do Supabase (${App.State.tokens.filter(t => t.provider === 'coingecko').length} CoinGecko)`);
+                console.log(`📊 ${App.State.tokens.length} tokens carregados do Supabase`);
             } catch (error) {
                 console.error('❌ Erro ao carregar tokens:', error);
                 // Fallback básico
                 App.State.tokens = [
-                    {symbol: 'BTCUSDT', name: 'Bitcoin', coinId: 'bitcoin', provider: 'binance'},
-                    {symbol: 'ETHUSDT', name: 'Ethereum', coinId: 'ethereum', provider: 'binance'}
+                    {symbol: 'BTCUSDT', name: 'Bitcoin', coinId: 'bitcoin'},
+                    {symbol: 'ETHUSDT', name: 'Ethereum', coinId: 'ethereum'}
                 ];
             }
         },
@@ -868,42 +837,24 @@ const App = {
         
         await Promise.all(batch.map(async (token) => {
             try {
-                console.log(`📊 Buscando dados para ${token.symbol} (${token.provider})...`);
+                console.log(`📊 Buscando dados para ${token.symbol}...`);
                 
-                let klines1h, klinesDaily, klinesWeekly, fundamentals;
-                
-                // Fluxo baseado no provider
-                if (token.provider === 'binance') {
-                    // Fluxo Binance (original)
-                    [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
-                        App.Core.fetchKlines(token, '1h', 24),
-                        App.Core.fetchKlines(token, '1d', 35),
-                        App.Core.fetchKlines(token, '1w', 250),
-                        App.Core.fetchFundamentals(token.coinId)
-                    ]);
-                } else if (token.provider === 'coingecko') {
-                    // Fluxo CoinGecko - dados completos da API
-                    [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
-                        App.Core.fetchCoinGeckoHourly(token.coinId, 24),
-                        App.Core.fetchCoinGeckoDaily(token.coinId, 35),
-                        App.Core.fetchCoinGeckoWeekly(token.coinId, 250),
-                        App.Core.fetchFundamentals(token.coinId)
-                    ]);
-                } else {
-                    console.warn(`⚠️ Provider desconhecido para ${token.symbol}: ${token.provider}`);
-                    return;
-                }
+                const [klines1h, klinesDaily, klinesWeekly, fundamentals] = await Promise.all([
+                    App.Core.fetchKlines(token, '1h', 24),
+                    App.Core.fetchKlines(token, '1d', 35),
+                    App.Core.fetchKlines(token, '1w', 250),
+                    App.Core.fetchFundamentals(token.coinId)
+                ]);
 
                 if (klinesWeekly && klinesWeekly.length > 50) {
                     const quant = App.Analysis.run(token.symbol, klinesWeekly, klinesDaily, klines1h, fundamentals);
                     App.State.data[token.symbol] = { 
                         klines: { w: klinesWeekly, d: klinesDaily, h: klines1h }, 
                         fundamentals, 
-                        analysis: quant,
-                        provider: token.provider
+                        analysis: quant 
                     };
                     
-                    console.log(`✅ ${token.symbol} (${token.provider}): Score ${quant.score}, Preço $${quant.price.toFixed(2)}`);
+                    console.log(`✅ ${token.symbol}: Score ${quant.score}, Preço $${quant.price.toFixed(2)}`);
                 } else {
                     console.warn(`⚠️ Dados insuficientes para ${token.symbol}`);
                 }
@@ -940,7 +891,7 @@ const App = {
             
             try {
                 // Tenta Binance primeiro se parecer um par Binance
-                if (token.symbol.endsWith('USDT') && token.provider === 'binance') {
+                if (token.symbol.endsWith('USDT')) {
                     const response = await fetch(`${API.BINANCE}/klines?symbol=${token.symbol}&interval=${interval}&limit=${limit}`);
                     if (response.ok) {
                         const data = await response.json();
@@ -956,128 +907,40 @@ const App = {
                 }
                 
                 // Se falhar ou não for Binance, tenta CoinGecko pelo ID
-                if (token.coinId && token.provider === 'coingecko') {
-                    return await App.Core.fetchCoinGeckoKlines(token.coinId, interval, limit);
+                if (token.coinId) {
+                    const daysMap = { '1h': '1', '1d': '30', '1w': 'max' };
+                    const days = daysMap[interval] || 'max';
+                    
+                    const response = await fetch(`${API.COINGECKO}/coins/${token.coinId}/market_chart?vs_currency=usd&days=${days}`);
+                    if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
+                    const data = await response.json();
+                    
+                    // CoinGecko Market Chart retorna apenas Preços. Criamos velas fictícias (Open=Close)
+                    let candles = data.prices.map(p => ({
+                        time: p[0],
+                        open: p[1],
+                        high: p[1],
+                        low: p[1],
+                        close: p[1],
+                        volume: 0 
+                    }));
+
+                    // Amostragem para reduzir carga se for 'max'
+                    if (interval === '1w' && candles.length > 250) {
+                         // Tentar pegar 1 ponto por semana aproximadamente
+                         const filtered = [];
+                         // Dados diários/horários são muitos. 
+                         // Para semanal, pegamos o último ponto de cada 7 dias aprox? 
+                         // Simplificação: Pegar os últimos 'limit' pontos
+                         return candles.slice(-limit);
+                    }
+                    
+                    return candles.slice(-limit);
                 }
                 return [];
 
             } catch (error) {
                 console.error(`❌ Erro klines (${token.symbol}):`, error.message);
-                return [];
-            }
-        },
-
-        // Novas funções para CoinGecko
-        fetchCoinGeckoKlines: async (coinId, interval, limit) => {
-            try {
-                const daysMap = { '1h': '1', '1d': '30', '1w': 'max' };
-                const days = daysMap[interval] || 'max';
-                
-                const response = await fetch(`${API.COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
-                if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                const data = await response.json();
-                
-                // CoinGecko Market Chart retorna apenas Preços. Criamos velas fictícias (Open=Close)
-                let candles = data.prices.map(p => ({
-                    time: p[0],
-                    open: p[1],
-                    high: p[1],
-                    low: p[1],
-                    close: p[1],
-                    volume: 0 
-                }));
-
-                // Amostragem para reduzir carga se for 'max'
-                if (interval === '1w' && candles.length > 250) {
-                     // Tentar pegar 1 ponto por semana aproximadamente
-                     const filtered = [];
-                     // Dados diários/horários são muitos. 
-                     // Para semanal, pegamos o último ponto de cada 7 dias aprox? 
-                     // Simplificação: Pegar os últimos 'limit' pontos
-                     return candles.slice(-limit);
-                }
-                
-                return candles.slice(-limit);
-            } catch (error) {
-                console.error(`❌ Erro CoinGecko klines (${coinId}):`, error);
-                return [];
-            }
-        },
-
-        fetchCoinGeckoHourly: async (coinId, limit) => {
-            try {
-                const response = await fetch(`${API.COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=1`);
-                if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                const data = await response.json();
-                
-                // Criar candles fictícias
-                let candles = data.prices.map(p => ({
-                    time: p[0],
-                    open: p[1],
-                    high: p[1],
-                    low: p[1],
-                    close: p[1],
-                    volume: 0
-                }));
-                
-                return candles.slice(-limit);
-            } catch (error) {
-                console.error(`❌ Erro CoinGecko hourly (${coinId}):`, error);
-                return [];
-            }
-        },
-
-        fetchCoinGeckoDaily: async (coinId, limit) => {
-            try {
-                const response = await fetch(`${API.COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=30`);
-                if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                const data = await response.json();
-                
-                let candles = data.prices.map(p => ({
-                    time: p[0],
-                    open: p[1],
-                    high: p[1],
-                    low: p[1],
-                    close: p[1],
-                    volume: 0
-                }));
-                
-                return candles.slice(-limit);
-            } catch (error) {
-                console.error(`❌ Erro CoinGecko daily (${coinId}):`, error);
-                return [];
-            }
-        },
-
-        fetchCoinGeckoWeekly: async (coinId, limit) => {
-            try {
-                const response = await fetch(`${API.COINGECKO}/coins/${coinId}/market_chart?vs_currency=usd&days=max`);
-                if (!response.ok) throw new Error(`CG HTTP ${response.status}`);
-                const data = await response.json();
-                
-                let candles = data.prices.map(p => ({
-                    time: p[0],
-                    open: p[1],
-                    high: p[1],
-                    low: p[1],
-                    close: p[1],
-                    volume: 0
-                }));
-                
-                // Pegar amostras semanais (aproximadamente 1 ponto por semana)
-                if (candles.length > limit) {
-                    const step = Math.floor(candles.length / limit);
-                    const sampled = [];
-                    for (let i = candles.length - 1; i >= 0; i -= step) {
-                        if (sampled.length >= limit) break;
-                        sampled.unshift(candles[i]);
-                    }
-                    return sampled;
-                }
-                
-                return candles.slice(-limit);
-            } catch (error) {
-                console.error(`❌ Erro CoinGecko weekly (${coinId}):`, error);
                 return [];
             }
         },
@@ -1097,11 +960,7 @@ const App = {
                     ath: md.ath?.usd || 0,
                     ath_change: md.ath_change_percentage?.usd || 0,
                     circ_supply: md.circulating_supply || 0,
-                    total_supply: md.total_supply || md.circulating_supply || 0,
-                    price_change_24h: md.price_change_percentage_24h || 0,
-                    price_change_7d: md.price_change_percentage_7d || 0,
-                    price_change_30d: md.price_change_percentage_30d || 0,
-                    price_change_1h: md.price_change_percentage_1h_in_currency?.usd || 0
+                    total_supply: md.total_supply || md.circulating_supply || 0
                 };
             } catch (error) {
                 console.error(`❌ Erro ao buscar fundamentos para ${coinId}:`, error);
@@ -1136,22 +995,10 @@ const App = {
             const zScore = (Math.log(Math.max(currentPrice, 0.0001)) - Math.log(Math.max(reg.regressionPrice, 0.0001))) / reg.stdev;
             const probProfit = Quant.empiricalProb(closesW, zScore, reg.stdev, reg.params);
 
-            // Para tokens CoinGecko, usar dados de variação da API diretamente
-            let chg1h, chg24h, chg7d, chg30d;
-            
-            if (fund && fund.price_change_1h !== undefined) {
-                // Usar dados diretos da API CoinGecko
-                chg1h = fund.price_change_1h || 0;
-                chg24h = fund.price_change_24h || 0;
-                chg7d = fund.price_change_7d || 0;
-                chg30d = fund.price_change_30d || 0;
-            } else {
-                // Cálculo tradicional (para Binance)
-                chg1h = h && h.length > 1 ? ((h[h.length-1].close - h[0].open)/h[0].open)*100 : 0;
-                chg24h = d && d.length > 1 ? ((d[d.length-1].close - d[d.length-2].close)/d[d.length-2].close)*100 : 0; 
-                chg7d = d && d.length > 7 ? ((d[d.length-1].close - d[d.length-8].close)/d[d.length-8].close)*100 : 0;
-                chg30d = d && d.length > 30 ? ((d[d.length-1].close - d[d.length-31].close)/d[d.length-31].close)*100 : 0;
-            }
+            const chg1h = h && h.length > 1 ? ((h[h.length-1].close - h[0].open)/h[0].open)*100 : 0;
+            const chg24h = d && d.length > 1 ? ((d[d.length-1].close - d[d.length-2].close)/d[d.length-2].close)*100 : 0; 
+            const chg7d = d && d.length > 7 ? ((d[d.length-1].close - d[d.length-8].close)/d[d.length-8].close)*100 : 0;
+            const chg30d = d && d.length > 30 ? ((d[d.length-1].close - d[d.length-31].close)/d[d.length-31].close)*100 : 0;
 
             const inflation = fund ? ((fund.total_supply - fund.circ_supply) / Math.max(fund.circ_supply, 1)) * 100 : 0;
             let rawLiq = fund && fund.mcap > 0 ? (fund.vol24 / fund.mcap) : 0;
@@ -1203,7 +1050,7 @@ const App = {
         }
     },
 
-    // --- UI HANDLERS (COM ADIÇÕES PARA COINGECKO) ---
+    // --- UI HANDLERS (MANTENHA IGUAL) ---
     UI: {
         setupMobileMenu: () => {
             const btn = document.getElementById('mobile-menu-btn');
@@ -1297,19 +1144,8 @@ const App = {
             
             const a = data.analysis;
             const f = data.fundamentals;
-            const provider = data.provider || 'binance';
             
             if (!a) return;
-            
-            // Adicionar/atualizar badge de provider
-            let providerBadge = card.querySelector('.provider-badge');
-            if (!providerBadge) {
-                providerBadge = document.createElement('span');
-                providerBadge.className = `provider-badge ${provider}`;
-                card.querySelector('.p-4').appendChild(providerBadge);
-            }
-            providerBadge.className = `provider-badge ${provider}`;
-            providerBadge.innerText = provider === 'coingecko' ? 'COINGECKO' : 'BINANCE';
             
             // Header
             card.querySelector('.price-display').innerText = '$' + a.price.toFixed(a.price < 1 ? 4 : 2);
@@ -1980,76 +1816,42 @@ const App = {
             let s = inp?.value.trim();
             if(!s) return;
             
-            // Remover espaços e converter para maiúsculas para verificação
-            s = s.toUpperCase();
+            // Normalizar input (Se o usuário digita 'pepe', verifica se 'PEPEUSDT' existe)
+            // Se não existe, assume que 'pepe' é o ID da CoinGecko
             
             try {
+                // 1. Tentar validar como Ticker da Binance (Adiciona USDT se faltar)
+                let binanceSymbol = s.toUpperCase();
+                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
+                
+                let isBinance = false;
+                try {
+                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
+                    if(r.ok) isBinance = true;
+                } catch(e) {}
+
                 let finalSymbol = '';
                 let finalName = '';
                 let finalCoinId = '';
-                let provider = 'binance'; // Default
-                
-                // Regra: se termina com USDT ou for detectado como Binance
-                if (s.endsWith('USDT') || (Settings.useCoinGeckoTokens === false)) {
-                    // Tratar como Binance
-                    let binanceSymbol = s;
-                    if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
-                    
-                    // Verificar se existe na Binance
-                    try {
-                        const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                        if(r.ok) {
-                            const data = await r.json();
-                            finalSymbol = binanceSymbol;
-                            finalName = binanceSymbol.replace('USDT','');
-                            finalCoinId = finalName.toLowerCase();
-                            provider = 'binance';
-                        } else {
-                            throw new Error('Não encontrado na Binance');
-                        }
-                    } catch(binanceError) {
-                        // Se falhar na Binance e estiver ativado o suporte a CoinGecko
-                        if (Settings.useCoinGeckoTokens) {
-                            // Tentar como CoinGecko
-                            const cgId = s.toLowerCase();
-                            try {
-                                const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
-                                if(rCg.ok) {
-                                    const dCg = await rCg.json();
-                                    finalSymbol = dCg.symbol.toUpperCase() + 'USDT'; // Formato compatível
-                                    finalName = dCg.name;
-                                    finalCoinId = dCg.id;
-                                    provider = 'coingecko';
-                                } else {
-                                    alert(`Token não encontrado:\n\nBinance: '${binanceSymbol}'\nCoinGecko ID: '${cgId}'`);
-                                    return;
-                                }
-                            } catch(cgError) {
-                                alert(`Token não encontrado na Binance nem na CoinGecko.\n\nPara tokens fora da Binance, use o ID exato da CoinGecko (ex: kaspa, pepe, sui).`);
-                                return;
-                            }
-                        } else {
-                            alert(`Token '${binanceSymbol}' não encontrado na Binance.\n\nAtive o suporte a CoinGecko nas configurações para adicionar tokens fora da Binance.`);
-                            return;
-                        }
-                    }
+
+                if(isBinance) {
+                    // Caso Binance
+                    finalSymbol = binanceSymbol;
+                    finalName = binanceSymbol.replace('USDT','');
+                    finalCoinId = finalName.toLowerCase(); 
                 } else {
-                    // Não termina com USDT - tratar como CoinGecko ID
+                    // 2. Caso CoinGecko (Input é o ID exato, ex: 'bittensor')
                     const cgId = s.toLowerCase();
-                    try {
-                        const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
-                        if(rCg.ok) {
-                            const dCg = await rCg.json();
-                            finalSymbol = dCg.symbol.toUpperCase() + 'USDT';
-                            finalName = dCg.name;
-                            finalCoinId = dCg.id;
-                            provider = 'coingecko';
-                        } else {
-                            alert(`CoinGecko ID '${cgId}' não encontrado.\n\nVerifique se o ID está correto (ex: bitcoin, ethereum, kaspa).`);
-                            return;
-                        }
-                    } catch(cgError) {
-                        alert(`Erro ao buscar token na CoinGecko: ${cgError.message}`);
+                    const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
+                    
+                    if(rCg.ok) {
+                        const dCg = await rCg.json();
+                        // Criamos um simbolo fake para manter o padrão visual USDT
+                        finalSymbol = dCg.symbol.toUpperCase() + 'USDT'; 
+                        finalName = dCg.name;
+                        finalCoinId = dCg.id; // IMPORTANTE: O ID que a API usa
+                    } else {
+                        alert(`Não encontrado na Binance como '${binanceSymbol}' nem na CoinGecko com ID '${cgId}'.\n\nPara tokens fora da Binance, use o 'API ID' exato da CoinGecko (ex: 'kaspa', 'bittensor').`);
                         return;
                     }
                 }
@@ -2067,19 +1869,15 @@ const App = {
                         { 
                             symbol: finalSymbol, 
                             name: finalName, 
-                            coin_id: finalCoinId,
-                            provider: provider
+                            coin_id: finalCoinId
                         }
                     ])
                     .select();
                 
                 if (error) throw error;
                 
-                console.log(`✅ Token adicionado (${provider}):`, data[0]);
+                console.log('✅ Token adicionado:', data[0]);
                 inp.value = '';
-                
-                // Feedback visual
-                alert(`✅ ${finalName} (${finalSymbol}) adicionado como token ${provider.toUpperCase()}`);
                 
             } catch (error) {
                 console.error('❌ Erro ao adicionar token:', error);
@@ -2139,64 +1937,48 @@ const App = {
             if(lines.length === 0) return;
             
             let count = 0;
-            let addedTokens = [];
-            
             // Processamento sequencial simples para garantir validação
             for(let rawS of lines) {
-                const s = rawS.trim().toUpperCase();
-                let finalSymbol, finalName, finalCoinId, provider;
+                const s = rawS.trim();
+                let binanceSymbol = s.toUpperCase();
+                if(!binanceSymbol.endsWith('USDT')) binanceSymbol += 'USDT';
+                
+                let finalSymbol, finalName, finalCoinId;
                 
                 try {
-                    // Check Binance first (if ends with USDT)
-                    if (s.endsWith('USDT')) {
-                        const binanceSymbol = s;
-                        const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
-                        if(r.ok) {
-                            finalSymbol = binanceSymbol;
-                            finalName = binanceSymbol.replace('USDT','');
-                            finalCoinId = finalName.toLowerCase();
-                            provider = 'binance';
-                        }
-                    }
-                    
-                    // If not Binance or Binance failed, try CoinGecko
-                    if (!finalSymbol && Settings.useCoinGeckoTokens) {
-                        const cgId = rawS.trim().toLowerCase();
+                    // Check Binance
+                    const r = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
+                    if(r.ok) {
+                        finalSymbol = binanceSymbol;
+                        finalName = binanceSymbol.replace('USDT','');
+                        finalCoinId = finalName.toLowerCase();
+                    } else {
+                        // Check Gecko
+                        const cgId = s.toLowerCase();
                         const rCg = await fetch(`https://api.coingecko.com/api/v3/coins/${cgId}`);
                         if(rCg.ok) {
                             const dCg = await rCg.json();
                             finalSymbol = dCg.symbol.toUpperCase() + 'USDT';
                             finalName = dCg.name;
                             finalCoinId = dCg.id;
-                            provider = 'coingecko';
                         }
                     }
 
                     if(finalSymbol) {
-                        // Evitar duplicatas
+                         // Evitar duplicatas
                         const { data: exists } = await supabase.from('tokens').select('symbol').eq('symbol', finalSymbol);
                         if(exists && exists.length === 0) {
-                            await supabase.from('tokens').insert([
-                                { symbol: finalSymbol, name: finalName, coin_id: finalCoinId, provider: provider }
-                            ]);
+                            await supabase.from('tokens').insert([{ symbol: finalSymbol, name: finalName, coin_id: finalCoinId }]);
                             count++;
-                            addedTokens.push(`${finalSymbol} (${provider})`);
                         }
                     }
-                } catch(e) { 
-                    console.error(`Erro ao processar ${rawS}:`, e);
-                }
+                } catch(e) { console.error(e); }
                 
                 // Pequeno delay para evitar rate limit
                 await new Promise(r => setTimeout(r, 300));
             }
             
-            if (count > 0) {
-                alert(`${count} tokens adicionados:\n\n${addedTokens.join('\n')}`);
-            } else {
-                alert('Nenhum token novo adicionado (possivelmente já existem na lista).');
-            }
-            
+            alert(`${count} tokens adicionados.`);
             txt.value = '';
             App.Settings.closeModal();
         }
@@ -2216,11 +1998,7 @@ const App = {
                 
                 l.innerHTML = sortedTokens.map(t => `
                     <label class="inline-flex items-center bg-dark-800 px-2 py-1 rounded text-xs border border-gray-700 mr-2 mb-2">
-                        <input type="checkbox" value="${t.symbol}" class="mr-1"> 
-                        ${t.symbol.replace('USDT','')} 
-                        <span class="ml-1 text-[8px] ${t.provider === 'coingecko' ? 'text-gecko' : 'text-binance'}">
-                            (${t.provider === 'coingecko' ? 'CG' : 'BN'})
-                        </span>
+                        <input type="checkbox" value="${t.symbol}" class="mr-1"> ${t.symbol.replace('USDT','')}
                     </label>
                 `).join('');
             }
@@ -2248,7 +2026,6 @@ const App = {
                         const d = App.State.data[k];
                         return {
                             Symbol: k.replace('USDT', ''),
-                            Provider: d.provider || 'binance',
                             Price: d.analysis.price,
                             Score: d.analysis.score,
                             Risk: d.analysis.risk.class,
